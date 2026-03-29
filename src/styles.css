@@ -137,6 +137,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 0.95rem;
+  min-width: 0;
 }
 
 .brand-mark span {
@@ -153,6 +154,7 @@ main {
   font-family: "Syne", sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
+  flex: 0 0 auto;
 }
 
 .brand-mark strong,
@@ -187,6 +189,7 @@ main {
 .topbar-nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.4rem;
 }
 
@@ -256,7 +259,7 @@ main {
   top: 0;
   right: 0;
   bottom: 0;
-  left: 44%;
+  left: 46%;
   pointer-events: none;
   opacity: 0.96;
 }
@@ -265,10 +268,11 @@ main {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: 1.2rem;
-  align-items: end;
+  align-items: start;
   min-height: calc(100vh - 6.5rem);
+  padding-top: clamp(0.2rem, 0.8vw, 0.8rem);
 }
 
 .hero-copy-block,
@@ -282,8 +286,14 @@ main {
   z-index: 1;
 }
 
+.hero-copy-block,
+.hero-panel {
+  min-width: 0;
+}
+
 .hero-copy-block {
-  padding: clamp(1.75rem, 4vw, 4rem) 0 clamp(3rem, 6vw, 5.2rem);
+  align-self: start;
+  padding: 0.25rem 0 clamp(1.5rem, 3.2vw, 2.75rem);
 }
 
 .hero-copy-block::before {
@@ -389,6 +399,17 @@ main {
   text-transform: uppercase;
 }
 
+.contact-value {
+  display: block;
+  max-width: 100%;
+  color: #e9f7ff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .glass-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
@@ -400,7 +421,7 @@ main {
 }
 
 .hero-panel {
-  align-self: center;
+  align-self: start;
   padding: 1.45rem;
   overflow: hidden;
 }
@@ -424,6 +445,8 @@ main {
   font-size: clamp(1.9rem, 3vw, 3.3rem);
   line-height: 0.98;
   letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .hero-panel p,
@@ -459,23 +482,33 @@ main {
   color: #c8f6ff;
 }
 
-.status-card strong {
+.status-value {
   display: block;
   margin-top: 0.65rem;
+  max-width: 100%;
   font-family: "Syne", sans-serif;
-  font-size: clamp(2rem, 2.4vw, 2.75rem);
+  font-size: clamp(1.85rem, 2vw, 2.45rem);
+  line-height: 0.95;
   letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.status-value--compact {
+  font-size: clamp(1.6rem, 1.75vw, 2.05rem);
+  line-height: 1;
 }
 
 .impact-band {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  margin-top: -1.25rem;
+  margin-top: 1rem;
 }
 
 .impact-band__card {
   position: relative;
+  min-width: 0;
   padding: 1.2rem 1.2rem 1.3rem;
   border-radius: 1.4rem;
   border: 1px solid rgba(126, 229, 255, 0.12);
@@ -492,6 +525,7 @@ main {
   margin: 0;
   color: var(--soft);
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .overview-grid,
@@ -616,7 +650,18 @@ main {
   color: #e8f8ff;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1240px) {
+  .topbar {
+    flex-wrap: wrap;
+    width: calc(100% - 1rem);
+  }
+
+  .topbar-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .hero-canvas {
     left: 50%;
     opacity: 0.8;
@@ -630,6 +675,16 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .hero-grid {
+    min-height: auto;
+    padding-top: 0.5rem;
+  }
+
+  .hero-copy-block,
+  .hero-panel {
+    align-self: start;
+  }
+
   .hero h1 {
     max-width: 10.8ch;
   }
@@ -641,17 +696,6 @@ main {
 }
 
 @media (max-width: 900px) {
-  .topbar {
-    flex-wrap: wrap;
-    width: calc(100% - 1rem);
-  }
-
-  .topbar-nav {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
   .status-grid {
     grid-template-columns: 1fr;
   }
@@ -682,6 +726,7 @@ main {
 
   .hero-grid {
     min-height: auto;
+    padding-top: 0;
   }
 
   .hero h1 {
@@ -716,3 +761,5 @@ main {
     transition-duration: 0.01ms !important;
   }
 }
+
+

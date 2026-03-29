@@ -1,9 +1,15 @@
 import HeroScene from "./components/hero-scene";
 
+type ContactItem = {
+  label: string;
+  value: string;
+};
+
 type Stat = {
   label: string;
   value: string;
   detail: string;
+  compact?: boolean;
 };
 
 type Role = {
@@ -13,6 +19,21 @@ type Role = {
   summary: string;
   bullets: string[];
 };
+
+const contactItems: ContactItem[] = [
+  {
+    label: "Handle",
+    value: "mdsarfarazalam840",
+  },
+  {
+    label: "Email",
+    value: "md.sarfarazalam840@gmail.com",
+  },
+  {
+    label: "Phone",
+    value: "+91 7717795540",
+  },
+];
 
 const signalStats: Stat[] = [
   {
@@ -34,6 +55,7 @@ const signalStats: Stat[] = [
     label: "Leadership",
     value: "6 Engineers",
     detail: "Task delegation, mentoring, and delivery guidance in SLA-sensitive environments.",
+    compact: true,
   },
 ];
 
@@ -184,9 +206,12 @@ function App() {
               </div>
 
               <ul className="contact-ribbon" aria-label="Contact details">
-                <li><span>Handle</span>mdsarfarazalam840</li>
-                <li><span>Email</span>md.sarfarazalam840@gmail.com</li>
-                <li><span>Phone</span>+91 7717795540</li>
+                {contactItems.map((item) => (
+                  <li key={item.label}>
+                    <span>{item.label}</span>
+                    <strong className="contact-value">{item.value}</strong>
+                  </li>
+                ))}
               </ul>
             </section>
 
@@ -202,7 +227,7 @@ function App() {
                 {signalStats.map((item) => (
                   <article className="status-card" key={item.label}>
                     <span>{item.label}</span>
-                    <strong>{item.value}</strong>
+                    <strong className={item.compact ? "status-value status-value--compact" : "status-value"}>{item.value}</strong>
                     <p>{item.detail}</p>
                   </article>
                 ))}

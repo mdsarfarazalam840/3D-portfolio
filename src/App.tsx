@@ -1,352 +1,395 @@
-import HeroScene from "./components/hero-scene";
+import { Suspense, lazy, useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
 
-type ContactItem = {
-  label: string;
-  value: string;
-};
+const HeroScene = lazy(() => import("./components/hero-scene"));
+const resumePdf = new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
+const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
 
-type Stat = {
-  label: string;
-  value: string;
-  detail: string;
-  compact?: boolean;
-};
+gsap.registerPlugin(ScrollTrigger);
 
-type Role = {
-  title: string;
-  company: string;
-  duration: string;
-  summary: string;
-  bullets: string[];
-};
+const heroLines = [
+  "Cloud reliability",
+  "with real operations depth",
+  "and platform calm under pressure.",
+];
 
-const contactItems: ContactItem[] = [
+const signalPoints = [
   {
-    label: "Handle",
-    value: "mdsarfarazalam840",
+    value: "40%",
+    label: "MTTR reduction",
+    detail: "P1 and P2 recovery improved through RCA, alert tuning, and platform fixes.",
   },
   {
-    label: "Email",
-    value: "md.sarfarazalam840@gmail.com",
+    value: "20%",
+    label: "Cloud cost down",
+    detail: "Rightsizing, autoscaling, and environment-aware database scaling in Azure.",
   },
   {
-    label: "Phone",
-    value: "+91 7717795540",
+    value: "10+",
+    label: "Apps supported",
+    detail: "Enterprise production services across AKS, App Services, CI/CD, and observability layers.",
   },
 ];
 
-const signalStats: Stat[] = [
+const experienceStories = [
   {
-    label: "Production Surface",
-    value: "10+ Apps",
-    detail: "Azure-hosted workloads supported with L2/L3 ownership and outage response.",
+    period: "Now",
+    title: "Senior Software Engineer at Accenture, supporting Shell",
+    copy:
+      "Own reliability work across enterprise Azure estates. I reduce MTTR, harden AKS workloads, improve Dynatrace visibility, and build CI/CD rails that remove manual risk from releases.",
   },
   {
-    label: "Cost Impact",
-    value: "$95K",
-    detail: "Measured annual savings through platform tuning, right-sizing, and automation.",
-  },
-  {
-    label: "Acceleration",
-    value: "35%",
-    detail: "Lower application load time after ADF-driven archival and disposal automation.",
-  },
-  {
-    label: "Leadership",
-    value: "6 Engineers",
-    detail: "Task delegation, mentoring, and delivery guidance in SLA-sensitive environments.",
-    compact: true,
+    period: "Earlier",
+    title: "Associate Software Engineer at Accenture",
+    copy:
+      "Built foundations in incident response, ITIL operations, Azure monitoring, and production issue resolution. This is where the operating discipline started.",
   },
 ];
 
-const operatingSignals = [
+const featuredProjects = [
   {
-    title: "Incident command",
-    body: "P1/P2 resolution, RCA leadership, vendor coordination, and reliability follow-through.",
+    title: "Acquisitions API",
+    impact: "Secure backend with JWT auth, Neon PostgreSQL, Drizzle ORM, and role-based access control.",
+    stack: "Express.js / PostgreSQL / Drizzle / JWT / Arcjet",
+    href: "https://github.com/mdsarfarazalam840/acquisitions",
   },
   {
-    title: "Cloud cost engineering",
-    body: "Operational savings through App Service modernization, autoscaling, and platform rightsizing.",
+    title: "Space Drive",
+    impact: "Telegram-powered file dashboard with premium frontend motion and streaming-first interaction design.",
+    stack: "Next.js / Tailwind / Framer Motion / Telegram Cloud",
+    href: "https://github.com/mdsarfarazalam840/own-drive",
   },
   {
-    title: "Delivery systems",
-    body: "CI/CD, observability, Terraform, AKS, and secure deployment mechanics across environments.",
+    title: "Telegram to Google Drive Bot",
+    impact: "High-throughput automation for streaming Telegram files into Google Drive with resumable uploads.",
+    stack: "Python / Pyrogram / Google Drive API / Docker",
+    href: "https://github.com/mdsarfarazalam840/New-Tg-Gd-Bot",
+  },
+  {
+    title: "Trading Migration System",
+    impact: "Enterprise migration platform for workflow movement between ETRM systems with audit visibility.",
+    stack: ".NET Core / React / MongoDB / Swagger",
+    href: "https://github.com/mdsarfarazalam840/Trading-Project-ETRM",
   },
 ];
 
-const platformTools = [
-  "Azure App Services",
+const capabilityGroups = [
+  "Azure",
   "AKS",
-  "Azure SQL",
-  "Azure Monitor",
-  "Key Vault",
-  "Logic Apps",
-  "ACR",
-  "Azure Functions",
-  "Azure Data Factory",
-  "Terraform",
+  "Dynatrace",
+  "CI/CD",
   "GitHub Actions",
   "Azure DevOps",
-];
-
-const engineeringTools = [
-  "ReactJS",
-  "NodeJS",
+  "Incident Response",
+  "Observability",
+  "Platform Reliability",
+  "React",
   "Python",
-  "Bash",
-  "Postman",
-  "Databricks",
-  "Git",
-  "SonarQube",
-  "Grafana",
-  "Azure Log Analytics",
-  "MSSQL",
-  "Oracle",
-  "Cosmos DB",
+  "Docker",
+  "KQL",
+  "Azure Data Factory",
 ];
 
-const roles: Role[] = [
-  {
-    title: "Software Engineer",
-    company: "Accenture · Client: Shell",
-    duration: "May 2023 - Present",
-    summary:
-      "Enterprise cloud operations focused on platform reliability, automation, observability, and high-trust leadership.",
-    bullets: [
-      "Resolved P1/P2 incidents with application vendors and Microsoft, then led RCA and problem management to reduce recurrence.",
-      "Implemented cost optimization initiatives that delivered an estimated $95,000 in annual operational savings.",
-      "Designed end-to-end CI/CD pipelines with GitHub Actions and Azure DevOps for builds, tests, security scans, and deployments.",
-      "Rolled out Dynatrace dashboards and OneAgent installation across application estates.",
-      "Led a six-member team through technical guidance, delegation, mentoring, and knowledge transfer.",
-      "Built an Azure Data Factory archival pipeline that reduced application load time by 35%.",
-      "Provisioned cloud infrastructure with Terraform for repeatable, version-controlled deployments.",
-      "Managed AKS deployments including scaling, health checks, and secrets management.",
-    ],
-  },
-  {
-    title: "Associate Software Engineer",
-    company: "Accenture",
-    duration: "Sept 2021 - April 2023",
-    summary:
-      "Azure operations support across multiple production applications with strong observability and ITIL discipline.",
-    bullets: [
-      "Delivered L2/L3 support for 10+ Azure-hosted applications, including validation during Azure outages.",
-      "Reduced monthly cost by 20% through weekend DB downsizing, auto-scaling, and resource rightsizing.",
-      "Worked extensively with App Services, Logic Apps, Azure Functions, Azure SQL, and ADF production workloads.",
-      "Operated in an ITIL-aligned environment for incident management, problem resolution, and change control.",
-      "Partnered with development and infrastructure teams to ship bug fixes and enhancements through Azure DevOps and GitHub Actions.",
-      "Created custom Azure Monitor and Log Analytics alerts using KQL for stronger observability.",
-    ],
-  },
-];
-
-const achievements = [
-  "ACE (Accenture Celebrates Excellence) award in Q2 2024 for SLA excellence, React UI delivery, mentoring, and technical leadership.",
-  "35% faster application load time through Azure Data Factory archival and disposal automation.",
-  "20% monthly cost reduction through App Service plan modernization and cross-environment resource tuning.",
-];
-
-const certifications = [
-  "Postman Student Expert",
-  "AZ-900: Microsoft Azure Fundamentals",
-  "AZ-104: Azure Administrator Associate",
+const contactLinks = [
+  { label: "GitHub", value: "github.com/mdsarfarazalam840", href: "https://github.com/mdsarfarazalam840" },
+  { label: "Email", value: "md.sarfarazalam840@gmail.com", href: "mailto:md.sarfarazalam840@gmail.com" },
+  { label: "Phone", value: "+91 7717795540", href: "tel:+917717795540" },
+  { label: "Resume", value: "Download PDF", href: resumePdf },
 ];
 
 function App() {
-  return (
-    <div className="page-shell">
-      <div className="page-noise" aria-hidden="true" />
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
-      <header className="topbar" aria-label="Primary navigation">
-        <a className="brand-mark" href="#home">
-          <span aria-hidden="true">MSA</span>
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.15,
+      smoothWheel: true,
+      syncTouch: false,
+    });
+
+    let frameId = 0;
+    const raf = (time: number) => {
+      lenis.raf(time);
+      frameId = window.requestAnimationFrame(raf);
+    };
+    frameId = window.requestAnimationFrame(raf);
+
+    const ctx = gsap.context(() => {
+      gsap.set(".reveal-line__inner", { yPercent: 110 });
+      gsap.set(".hero-fade", { opacity: 0, y: 28 });
+
+      const heroTimeline = gsap.timeline({ defaults: { ease: "power4.out" } });
+      heroTimeline
+        .to(".reveal-line__inner", {
+          yPercent: 0,
+          duration: 1.1,
+          stagger: 0.1,
+        })
+        .to(
+          ".hero-fade",
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            stagger: 0.08,
+          },
+          "-=0.7",
+        );
+
+      gsap.to(".portrait-frame", {
+        y: -18,
+        duration: 2.8,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+
+      gsap.to(".portrait-ring", {
+        rotate: 360,
+        duration: 12,
+        repeat: -1,
+        ease: "none",
+      });
+
+      gsap.utils.toArray<HTMLElement>(".scene-section").forEach((section) => {
+        const targets = section.querySelectorAll<HTMLElement>("[data-animate]");
+
+        gsap.fromTo(
+          targets,
+          { opacity: 0, y: 42 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            stagger: 0.08,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 78%",
+            },
+          },
+        );
+
+        gsap.fromTo(
+          section,
+          { opacity: 0.5 },
+          {
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 80%",
+              end: "top 25%",
+              scrub: true,
+            },
+          },
+        );
+      });
+
+      gsap.utils.toArray<HTMLElement>(".section-wash").forEach((wash) => {
+        gsap.fromTo(
+          wash,
+          { yPercent: 14, opacity: 0.2 },
+          {
+            yPercent: -10,
+            opacity: 0.55,
+            ease: "none",
+            scrollTrigger: {
+              trigger: wash.parentElement,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          },
+        );
+      });
+    }, rootRef);
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      lenis.destroy();
+      ctx.revert();
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
+
+  return (
+    <div className="portfolio-shell" ref={rootRef}>
+      <div className="noise-layer" aria-hidden="true" />
+      <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
+      <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
+
+      <header className="site-header">
+        <a className="site-mark" href="#top">
+          <span>MS</span>
           <div>
             <strong>Md Sarfaraz Alam</strong>
-            <small>Cloud Operations Engineer</small>
+            <small>Site Reliability Engineer</small>
           </div>
         </a>
 
-        <nav className="topbar-nav">
-          <a href="#experience">Experience</a>
-          <a href="#toolkit">Toolkit</a>
-          <a href="#credentials">Credentials</a>
+        <nav className="site-nav" aria-label="Primary">
+          <a href="#story">Story</a>
+          <a href="#work">Work</a>
+          <a href="#capabilities">Capabilities</a>
+          <a href="#contact">Contact</a>
         </nav>
 
-        <a className="topbar-cta" href="mailto:md.sarfarazalam840@gmail.com">
-          Open Contact
+        <a className="resume-link" href={resumePdf}>
+          Resume
         </a>
       </header>
 
-      <main id="home">
-        <section className="hero-shell">
-          <div className="hero-canvas" aria-hidden="true">
-            <HeroScene />
-          </div>
+      <main className="portfolio-main" id="top">
+        <section className="scene-section hero-scene" id="story">
+          <div className="section-wash" aria-hidden="true" />
 
-          <div className="hero-grid layout-shell">
-            <section className="hero-copy-block">
-              <p className="eyebrow">Azure PaaS · AKS · Observability · DevOps Delivery · Cost Optimization</p>
-              <div className="hero-title-stack">
-                <span className="hero-deck-label">Orbital support layer</span>
-                <h1>Azure operations presented like a flagship command center.</h1>
-              </div>
-              <p className="hero-copy">
-                Performance-driven IT professional with 4+ years of experience supporting large-scale cloud-native and hybrid
-                environments. I bring reliability, automation, observability, and delivery discipline to enterprise Azure
-                platforms that cannot afford downtime or drift.
-              </p>
+          <div className="hero-copy">
+            <p className="hero-kicker hero-fade">Azure / AKS / observability / CI-CD / incident response</p>
 
-              <div className="hero-actions">
-                <a className="primary-button" href="mailto:md.sarfarazalam840@gmail.com">
-                  Email Me
-                </a>
-                <a className="secondary-button" href="#experience">
-                  Explore Experience
-                </a>
-              </div>
+            <h1 className="hero-title" aria-label={heroLines.join(" ")}>
+              {heroLines.map((line) => (
+                <span className="reveal-line" key={line}>
+                  <span className="reveal-line__inner">{line}</span>
+                </span>
+              ))}
+            </h1>
 
-              <ul className="contact-ribbon" aria-label="Contact details">
-                {contactItems.map((item) => (
-                  <li key={item.label}>
-                    <span>{item.label}</span>
-                    <strong className="contact-value">{item.value}</strong>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <aside className="hero-panel glass-card" aria-label="Professional snapshot">
-              <div className="panel-kicker">Live Career Signal</div>
-              <h2>Support calm. Automation mindset. Enterprise-scale execution.</h2>
-              <p>
-                Proven in ITIL-aligned L2/L3 environments with deep Azure platform knowledge, incident ownership, proactive
-                monitoring, and dependable collaboration across DevOps and development teams.
-              </p>
-
-              <div className="status-grid">
-                {signalStats.map((item) => (
-                  <article className="status-card" key={item.label}>
-                    <span>{item.label}</span>
-                    <strong className={item.compact ? "status-value status-value--compact" : "status-value"}>{item.value}</strong>
-                    <p>{item.detail}</p>
-                  </article>
-                ))}
-              </div>
-            </aside>
-          </div>
-        </section>
-
-        <section className="impact-band layout-shell" aria-label="Core strengths">
-          {operatingSignals.map((item) => (
-            <article className="impact-band__card" key={item.title}>
-              <span>{item.title}</span>
-              <p>{item.body}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className="overview-grid layout-shell">
-          <article className="glass-card manifesto-card">
-            <p className="section-tag">Operating Profile</p>
-            <h2>Built for environments where uptime, speed, and accountability need to coexist.</h2>
-            <p>
-              My strength sits at the intersection of support engineering, platform operations, and delivery execution. That
-              means restoring service quickly, improving observability before the next incident arrives, and designing the
-              automation and deployment patterns that make teams more confident over time.
+            <p className="hero-summary hero-fade">
+              I build calmer systems. Over the last 4+ years I have reduced MTTR, tuned cloud cost, improved AKS
+              reliability, and supported enterprise production workloads where failure has real operational weight.
             </p>
-          </article>
 
-          <article className="glass-card education-card">
-            <p className="section-tag">Education</p>
-            <h2>B.Tech. in Computer Science &amp; Engineering</h2>
-            <p>Gandhi Institute for Education and Technology, Odisha</p>
-            <p className="muted">2017 - 2021</p>
-          </article>
-        </section>
-
-        <section className="experience-section layout-shell" id="experience">
-          <div className="section-heading">
-            <p className="section-tag">Experience</p>
-            <h2>Operational depth across support, automation, deployment, observability, and cloud efficiency.</h2>
+            <div className="hero-actions hero-fade">
+              <a className="text-button text-button--solid" href="#work">
+                View selected work
+              </a>
+              <a className="text-button" href="https://github.com/mdsarfarazalam840">
+                GitHub
+              </a>
+            </div>
           </div>
 
-          <div className="timeline-list">
-            {roles.map((role) => (
-              <article className="glass-card timeline-card" key={`${role.title}-${role.duration}`}>
-                <div className="timeline-rail" aria-hidden="true" />
-                <div className="timeline-content">
-                  <div className="timeline-header">
-                    <div>
-                      <h3>{role.title}</h3>
-                      <p>{role.company}</p>
-                    </div>
-                    <span>{role.duration}</span>
-                  </div>
-                  <p className="timeline-summary">{role.summary}</p>
-                  <ul>
-                    {role.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
-                    ))}
-                  </ul>
+          <div className="hero-visual hero-fade">
+            <div className="hero-stage">
+              <div className="hero-canvas" aria-hidden="true">
+                <Suspense fallback={<div className="hero-canvas__fallback" />}>
+                  <HeroScene />
+                </Suspense>
+              </div>
+
+              <div className="portrait-frame">
+                <div className="portrait-ring" />
+                <div className="portrait-core">
+                  <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
+                </div>
+              </div>
+
+              <div className="live-note">
+                <span>Now</span>
+                <p>Improving Azure reliability, reducing incident noise, and building release confidence.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="scene-section impact-scene">
+          <div className="section-wash" aria-hidden="true" />
+          <p className="scene-label" data-animate>
+            Impact
+          </p>
+          <div className="impact-grid">
+            {signalPoints.map((point) => (
+              <article className="impact-item" data-animate key={point.label}>
+                <span className="impact-value">{point.value}</span>
+                <div>
+                  <h2>{point.label}</h2>
+                  <p>{point.detail}</p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="toolkit-section layout-shell" id="toolkit">
-          <div className="section-heading">
-            <p className="section-tag">Toolkit</p>
-            <h2>A modern Azure operations stack with delivery, troubleshooting, and data discipline built in.</h2>
+        <section className="scene-section narrative-scene" id="work">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="scene-heading" data-animate>
+            <p className="scene-label">Experience</p>
+            <h2>Production work, told as operating narrative not resume dump.</h2>
           </div>
 
-          <div className="toolkit-grid">
-            <article className="glass-card toolkit-card">
-              <div className="toolkit-card__head">
-                <span>Platform layer</span>
-                <h3>Cloud &amp; Infrastructure</h3>
-              </div>
-              <div className="skill-pills">
-                {platformTools.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </article>
-
-            <article className="glass-card toolkit-card">
-              <div className="toolkit-card__head">
-                <span>Execution layer</span>
-                <h3>Engineering &amp; Data</h3>
-              </div>
-              <div className="skill-pills">
-                {engineeringTools.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </article>
+          <div className="story-list">
+            {experienceStories.map((story) => (
+              <article className="story-item" data-animate key={story.title}>
+                <span>{story.period}</span>
+                <div>
+                  <h3>{story.title}</h3>
+                  <p>{story.copy}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section className="credentials-grid layout-shell" id="credentials">
-          <article className="glass-card credentials-card">
-            <p className="section-tag">Achievements</p>
-            <h2>Measured impact, not just activity.</h2>
-            <ul className="feature-list">
-              {achievements.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
+        <section className="scene-section projects-scene">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="scene-heading" data-animate>
+            <p className="scene-label">Projects</p>
+            <h2>Few projects. Real impact. No clutter.</h2>
+          </div>
 
-          <article className="glass-card credentials-card">
-            <p className="section-tag">Certifications</p>
-            <h2>Validated cloud foundations.</h2>
-            <ul className="feature-list">
-              {certifications.map((item) => (
-                <li key={item}>{item}</li>
+          <div className="project-list">
+            {featuredProjects.map((project) => (
+              <a className="project-row" data-animate href={project.href} key={project.title}>
+                <div>
+                  <h3>{project.title}</h3>
+                  <p>{project.impact}</p>
+                </div>
+                <span>{project.stack}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section className="scene-section capabilities-scene" id="capabilities">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="scene-heading" data-animate>
+            <p className="scene-label">Capabilities</p>
+            <h2>Stack shown with restraint.</h2>
+          </div>
+
+          <div className="capability-cloud" data-animate>
+            {capabilityGroups.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </section>
+
+        <section className="scene-section contact-scene" id="contact">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="contact-layout">
+            <div className="contact-copy" data-animate>
+              <p className="scene-label">Contact</p>
+              <h2>Open for reliability-first engineering, platform support, and cloud operations work.</h2>
+              <p>
+                Best fit for teams that care about release discipline, observability quality, AKS operations, incident
+                response, and measurable production improvement.
+              </p>
+            </div>
+
+            <div className="contact-links" data-animate>
+              {contactLinks.map((item) => (
+                <a href={item.href} key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </a>
               ))}
-            </ul>
-          </article>
+            </div>
+          </div>
         </section>
       </main>
     </div>

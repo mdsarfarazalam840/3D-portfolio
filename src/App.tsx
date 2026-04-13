@@ -1,11 +1,16 @@
-import { Suspense, lazy, useEffect, useRef } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { GitHubCalendar } from "react-github-calendar";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
 const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
+const githubUsername = "mdsarfarazalam840";
+const spotifyWidgetUrl =
+  "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true";
+const spotifyProfileUrl = "https://open.spotify.com/user/oj1xerhb9fby7dckdhp0yw3no";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -99,8 +104,130 @@ const contactLinks = [
   { label: "Resume", value: "Download PDF", href: resumePdf },
 ];
 
+type GithubActivity = {
+  repo: string;
+  message: string;
+  pushedAt: string;
+  commitUrl: string;
+  repoUrl: string;
+};
+
+function formatRelativeTime(value: string) {
+  const time = new Date(value).getTime();
+  const diffMs = Date.now() - time;
+
+  if (!Number.isFinite(time) || diffMs < 0) {
+    return "just now";
+  }
+
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 function App() {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const cursorRef = useRef<HTMLDivElement | null>(null);
+  const cursorCoreRef = useRef<HTMLDivElement | null>(null);
+  const cursorDotRef = useRef<HTMLDivElement | null>(null);
+  const particleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [latestPush, setLatestPush] = useState<GithubActivity | null>(null);
+  const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
+  const [githubError, setGithubError] = useState(false);
+
+  const calendarTheme = useMemo(
+    () => ({
+      dark: ["#161616", "#12311d", "#1a5a2f", "#2da44e", "#56d364"],
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadGithub = async () => {
+      try {
+        const repoResponse = await fetch(
+          `https://api.github.com/users/${githubUsername}/repos?sort=pushed&per_page=6&type=owner`,
+        );
+        if (!repoResponse.ok) {
+          throw new Error("Failed to load GitHub repos");
+        }
+
+        const repos = (await repoResponse.json()) as Array<{
+          full_name: string;
+          html_url: string;
+          pushed_at: string;
+          fork?: boolean;
+        }>;
+
+        const targetRepo = repos.find((repo) => !repo.fork) ?? repos[0];
+        if (!targetRepo) {
+          throw new Error("No repos found");
+        }
+
+        const commitsResponse = await fetch(`https://api.github.com/repos/${targetRepo.full_name}/commits?per_page=2`);
+        if (!commitsResponse.ok) {
+          throw new Error("Failed to load latest commit");
+        }
+
+        const commits = (await commitsResponse.json()) as Array<{
+          sha: string;
+          html_url: string;
+          commit: { message: string; committer?: { date?: string } };
+        }>;
+
+        const pushCommit = commits[0];
+        const historyCommit = commits[1] ?? commits[0];
+
+        const pushData = {
+          repo: targetRepo.full_name,
+          message: pushCommit?.commit.message.split("\n")[0] ?? "Recent push",
+          pushedAt: targetRepo.pushed_at,
+          commitUrl: pushCommit?.html_url ?? targetRepo.html_url,
+          repoUrl: targetRepo.html_url,
+        };
+
+        const commitData = {
+          repo: targetRepo.full_name,
+          message: historyCommit?.commit.message.split("\n")[0] ?? "Latest commit",
+          pushedAt: historyCommit?.commit.committer?.date ?? targetRepo.pushed_at,
+          commitUrl: historyCommit?.html_url ?? targetRepo.html_url,
+          repoUrl: targetRepo.html_url,
+        };
+
+        if (!cancelled) {
+          setLatestPush(pushData);
+          setLatestCommit(commitData);
+          setGithubError(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setLatestPush(null);
+          setLatestCommit(null);
+          setGithubError(true);
+        }
+      }
+    };
+
+    void loadGithub();
+
+    const intervalId = window.setInterval(() => {
+      void loadGithub();
+    }, 60000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -217,8 +344,303 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const body = document.body;
+    const root = document.documentElement;
+    const cursor = cursorRef.current;
+    const cursorCore = cursorCoreRef.current;
+    const dot = cursorDotRef.current;
+    const canvas = particleCanvasRef.current;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+    if (!cursor || !cursorCore || !dot || !canvas || !finePointer) {
+      return;
+    }
+
+    body.classList.add("custom-cursor-enabled");
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return () => {
+        body.classList.remove("custom-cursor-enabled");
+      };
+    }
+
+    const ringSize = 34;
+    const dotSize = 8;
+
+    gsap.set([cursor, dot], { autoAlpha: 0, x: -999, y: -999 });
+
+    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const ringPosition = { x: -999, y: -999 };
+    const dotPosition = { x: -999, y: -999 };
+    const motion = { vx: 0, vy: 0, speed: 0 };
+    const ambientParticles = Array.from({ length: 72 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      size: Math.random() * 2.4 + 0.8,
+      alpha: Math.random() * 0.4 + 0.18,
+    }));
+    const trailParticles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
+    const burstParticles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      size: number;
+      hue: string;
+    }> = [];
+    let lastMoveX = pointer.x;
+    let lastMoveY = pointer.y;
+    let lastMoveTime = performance.now();
+    let hoverActive = false;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    const syncPointer = (clientX: number, clientY: number, now = performance.now()) => {
+      const deltaTime = Math.max(now - lastMoveTime, 16);
+      motion.vx = clientX - lastMoveX;
+      motion.vy = clientY - lastMoveY;
+      motion.speed = Math.min(Math.hypot(motion.vx, motion.vy) / deltaTime, 2.4);
+      lastMoveX = clientX;
+      lastMoveY = clientY;
+      lastMoveTime = now;
+      pointer.x = clientX;
+      pointer.y = clientY;
+
+      root.style.setProperty("--pointer-x", `${clientX}px`);
+      root.style.setProperty("--pointer-y", `${clientY}px`);
+      root.style.setProperty("--pointer-speed", `${motion.speed.toFixed(3)}`);
+
+      gsap.set([cursor, dot], { autoAlpha: 1 });
+    };
+
+    const onMove = (event: MouseEvent) => {
+      syncPointer(event.clientX, event.clientY);
+
+      trailParticles.push({
+        x: event.clientX,
+        y: event.clientY,
+        vx: motion.vx * 0.08 + (Math.random() - 0.5) * 1.8,
+        vy: motion.vy * 0.08 + (Math.random() - 0.5) * 1.8,
+        life: 1,
+        size: Math.random() * 4 + 1.4 + motion.speed * 3.2,
+      });
+
+      if (trailParticles.length > 48) {
+        trailParticles.shift();
+      }
+    };
+
+    const interactiveNodes = Array.from(document.querySelectorAll("a, button, .project-row, .live-card"));
+    const animateCursor = (scale: number, borderColor: string, boxShadow: string, duration: number) =>
+      gsap.to(cursorCore, {
+        scale,
+        borderColor,
+        boxShadow,
+        duration,
+        overwrite: true,
+      });
+
+    const onEnter = () => {
+      hoverActive = true;
+      animateCursor(
+        1.42,
+        "rgba(0,212,255,0.72)",
+        "0 0 28px rgba(0, 212, 255, 0.2), inset 0 0 14px rgba(139, 92, 246, 0.12)",
+        0.18,
+      );
+      gsap.to(dot, { scale: 1.25, duration: 0.18, overwrite: true });
+    };
+    const onLeave = () => {
+      hoverActive = false;
+      animateCursor(
+        1,
+        "rgba(255,255,255,0.16)",
+        "0 0 14px rgba(0, 212, 255, 0.1), inset 0 0 10px rgba(139, 92, 246, 0.08)",
+        0.18,
+      );
+      gsap.to(dot, { scale: 1, duration: 0.18, overwrite: true });
+    };
+    const hideCursor = () => gsap.to([cursor, dot], { autoAlpha: 0, duration: 0.16, overwrite: true });
+    const onDown = (event: MouseEvent) => {
+      syncPointer(event.clientX, event.clientY);
+
+      for (let index = 0; index < 16; index += 1) {
+        const angle = (Math.PI * 2 * index) / 16;
+        const burstSpeed = 1.8 + Math.random() * 2.8;
+        burstParticles.push({
+          x: event.clientX,
+          y: event.clientY,
+          vx: Math.cos(angle) * burstSpeed,
+          vy: Math.sin(angle) * burstSpeed,
+          life: 1,
+          size: Math.random() * 3.2 + 1.2,
+          hue: index % 2 === 0 ? "rgba(0, 212, 255," : "rgba(139, 92, 246,",
+        });
+      }
+
+      gsap.fromTo(cursorCore, { scale: hoverActive ? 1.46 : 1.18 }, {
+        scale: hoverActive ? 1.42 : 1,
+        duration: 0.26,
+        ease: "power3.out",
+        overwrite: true,
+      });
+      gsap.fromTo(dot, { scale: 2.2 }, { scale: hoverActive ? 1.25 : 1, duration: 0.22, overwrite: true });
+    };
+    const onUp = (event: MouseEvent) => {
+      syncPointer(event.clientX, event.clientY);
+    };
+    interactiveNodes.forEach((node) => {
+      node.addEventListener("mouseenter", onEnter);
+      node.addEventListener("mouseleave", onLeave);
+    });
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("mouseup", onUp);
+    document.addEventListener("mouseleave", hideCursor);
+
+    let frameId = 0;
+    const render = () => {
+      ringPosition.x += (pointer.x - ringSize / 2 - ringPosition.x) * 0.16;
+      ringPosition.y += (pointer.y - ringSize / 2 - ringPosition.y) * 0.16;
+      dotPosition.x += (pointer.x - dotSize / 2 - dotPosition.x) * 0.34;
+      dotPosition.y += (pointer.y - dotSize / 2 - dotPosition.y) * 0.34;
+
+      gsap.set(cursor, { x: ringPosition.x, y: ringPosition.y });
+      gsap.set(dot, { x: dotPosition.x, y: dotPosition.y });
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.globalCompositeOperation = "lighter";
+
+      ambientParticles.forEach((particle) => {
+        const dx = pointer.x - particle.x;
+        const dy = pointer.y - particle.y;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance < 220) {
+          const force = ((220 - distance) / 220) * (0.8 + motion.speed * 1.6);
+          particle.x -= (dx / distance) * force * 2.1 || 0;
+          particle.y -= (dy / distance) * force * 2.1 || 0;
+        }
+
+        particle.vx += motion.vx * 0.0008;
+        particle.vy += motion.vy * 0.0008;
+        particle.vx *= 0.992;
+        particle.vy *= 0.992;
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+
+        context.beginPath();
+        context.fillStyle = `rgba(0, 212, 255, ${particle.alpha + motion.speed * 0.05})`;
+        context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      if (trailParticles.length > 1) {
+        context.beginPath();
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.lineWidth = 10 + motion.speed * 8;
+
+        trailParticles.forEach((particle, index) => {
+          if (index === 0) {
+            context.moveTo(particle.x, particle.y);
+          } else {
+            const previous = trailParticles[index - 1];
+            const midpointX = (previous.x + particle.x) / 2;
+            const midpointY = (previous.y + particle.y) / 2;
+            context.quadraticCurveTo(previous.x, previous.y, midpointX, midpointY);
+          }
+        });
+
+        context.strokeStyle = `rgba(99, 102, 241, ${0.08 + motion.speed * 0.08})`;
+        context.stroke();
+      }
+
+      for (let index = trailParticles.length - 1; index >= 0; index -= 1) {
+        const particle = trailParticles[index];
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.vx *= 0.97;
+        particle.vy *= 0.97;
+        particle.life -= 0.032;
+
+        if (particle.life <= 0) {
+          trailParticles.splice(index, 1);
+          continue;
+        }
+
+        context.beginPath();
+        context.fillStyle = `rgba(139, 92, 246, ${particle.life * 0.26})`;
+        context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      for (let index = burstParticles.length - 1; index >= 0; index -= 1) {
+        const particle = burstParticles[index];
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.vx *= 0.95;
+        particle.vy *= 0.95;
+        particle.life -= 0.045;
+
+        if (particle.life <= 0) {
+          burstParticles.splice(index, 1);
+          continue;
+        }
+
+        context.beginPath();
+        context.fillStyle = `${particle.hue} ${particle.life * 0.5})`;
+        context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      context.globalCompositeOperation = "source-over";
+
+      frameId = window.requestAnimationFrame(render);
+    };
+
+    frameId = window.requestAnimationFrame(render);
+
+    return () => {
+      body.classList.remove("custom-cursor-enabled");
+      root.style.removeProperty("--pointer-x");
+      root.style.removeProperty("--pointer-y");
+      root.style.removeProperty("--pointer-speed");
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mouseup", onUp);
+      document.removeEventListener("mouseleave", hideCursor);
+      window.cancelAnimationFrame(frameId);
+      interactiveNodes.forEach((node) => {
+        node.removeEventListener("mouseenter", onEnter);
+        node.removeEventListener("mouseleave", onLeave);
+      });
+    };
+  }, []);
+
   return (
     <div className="portfolio-shell" ref={rootRef}>
+      <canvas className="particle-canvas" ref={particleCanvasRef} />
+      <div className="liquid-field" aria-hidden="true" />
+      <div className="cursor-ring" ref={cursorRef}>
+        <div className="cursor-ring__core" ref={cursorCoreRef} />
+      </div>
+      <div className="cursor-dot" ref={cursorDotRef} />
       <div className="noise-layer" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
@@ -315,6 +737,82 @@ function App() {
           </div>
         </section>
 
+        <section className="scene-section live-scene">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="scene-heading" data-animate>
+            <p className="scene-label">Live</p>
+            <h2>Live signal.</h2>
+          </div>
+
+          <div className="live-grid">
+            <article className="live-card live-card--github" data-animate>
+              <div className="live-card__head">
+                <span>Parth's Github</span>
+                <a href={`https://github.com/${githubUsername}`}>Open profile</a>
+              </div>
+
+              <div className="github-stack">
+                {latestPush ? (
+                  <a className="github-block" href={latestPush.commitUrl}>
+                    <div className="github-block__meta">
+                      <span>Latest push</span>
+                      <small>{formatRelativeTime(latestPush.pushedAt)}</small>
+                    </div>
+                    <strong>"{latestPush.message}"</strong>
+                    <p>Repo: {latestPush.repo}</p>
+                  </a>
+                ) : (
+                  <div className="live-empty">{githubError ? "GitHub API blocked or rate limited." : "Push data loading..."}</div>
+                )}
+
+                {latestCommit ? (
+                  <a className="github-block" href={latestCommit.commitUrl}>
+                    <div className="github-block__meta">
+                      <span>Latest commit</span>
+                      <small>{formatRelativeTime(latestCommit.pushedAt)}</small>
+                    </div>
+                    <strong>"{latestCommit.message}"</strong>
+                    <p>Repo: {latestCommit.repo}</p>
+                  </a>
+                ) : (
+                  <div className="live-empty">{githubError ? "Commit data unavailable." : "Commit data loading..."}</div>
+                )}
+              </div>
+            </article>
+
+            <article className="live-card live-card--cta" data-animate>
+              <div className="live-card__head">
+                <span>Visitors</span>
+              </div>
+              <div className="signature-card">
+                <h3>
+                  Leave your <em>signal</em>
+                </h3>
+                <p>Open for SRE, Azure reliability, and platform work.</p>
+                <a className="signature-link" href="mailto:md.sarfarazalam840@gmail.com">
+                  Contact me
+                </a>
+              </div>
+            </article>
+
+            <article className="live-card live-card--spotify" data-animate>
+              <div className="live-card__head">
+                <span>Last played</span>
+                <a href={spotifyProfileUrl}>Open Spotify</a>
+              </div>
+              <a className="spotify-widget spotify-widget--futuristic" href={spotifyProfileUrl}>
+                <span className="spotify-widget__glow" aria-hidden="true" />
+                <span className="spotify-widget__grid" aria-hidden="true" />
+                <span className="spotify-widget__orbit" aria-hidden="true" />
+                <div className="spotify-widget__chrome">
+                  <span className="spotify-pill">Live audio signal</span>
+                </div>
+                <img alt="Spotify recently played widget" src={spotifyWidgetUrl} />
+              </a>
+            </article>
+          </div>
+        </section>
+
         <section className="scene-section narrative-scene" id="work">
           <div className="section-wash" aria-hidden="true" />
           <div className="scene-heading" data-animate>
@@ -345,11 +843,14 @@ function App() {
           <div className="project-list">
             {featuredProjects.map((project) => (
               <a className="project-row" data-animate href={project.href} key={project.title}>
-                <div>
+                <div className="project-row__main">
                   <h3>{project.title}</h3>
                   <p>{project.impact}</p>
                 </div>
-                <span>{project.stack}</span>
+                <div className="project-row__side">
+                  <span>{project.stack}</span>
+                  <strong>Open repo</strong>
+                </div>
               </a>
             ))}
           </div>
@@ -389,6 +890,26 @@ function App() {
                 </a>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="scene-section github-graph-scene">
+          <div className="section-wash" aria-hidden="true" />
+          <div className="scene-heading" data-animate>
+            <p className="scene-label">GitHub graph</p>
+            <h2>Contribution graph sits at bottom now.</h2>
+          </div>
+
+          <div className="calendar-shell calendar-shell--bottom" data-animate>
+            <GitHubCalendar
+              blockMargin={4}
+              blockRadius={3}
+              blockSize={12}
+              colorScheme="dark"
+              fontSize={12}
+              theme={calendarTheme}
+              username={githubUsername}
+            />
           </div>
         </section>
       </main>

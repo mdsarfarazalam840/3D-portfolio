@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.github
+.vite-cache
+.npm-cache
+*.tsbuildinfo
+playwright-report
+.playwright-mcp

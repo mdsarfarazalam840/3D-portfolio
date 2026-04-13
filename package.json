@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:live-data": "node scripts/generate-live-data.mjs",
     "test": "tsc -b --pretty false",
     "build": "tsc -b && vite build",
     "preview": "vite preview"

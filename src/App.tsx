@@ -112,6 +112,19 @@ type GithubActivity = {
   repoUrl: string;
 };
 
+type GeneratedLiveData = {
+  generatedAt: string;
+  github: {
+    latestPush: GithubActivity | null;
+    latestCommit: GithubActivity | null;
+    profileUrl: string;
+  };
+  spotify: {
+    widgetUrl: string;
+    profileUrl: string;
+  };
+};
+
 function formatRelativeTime(value: string) {
   const time = new Date(value).getTime();
   const diffMs = Date.now() - time;
@@ -151,6 +164,15 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
+
+    const loadGeneratedSnapshot = async () => {
+      const response = await fetch("/generated/live-data.json", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Failed to load generated live data");
+      }
+
+      return (await response.json()) as GeneratedLiveData;
+    };
 
     const loadGithub = async () => {
       try {
@@ -209,10 +231,20 @@ function App() {
           setGithubError(false);
         }
       } catch {
-        if (!cancelled) {
-          setLatestPush(null);
-          setLatestCommit(null);
-          setGithubError(true);
+        try {
+          const snapshot = await loadGeneratedSnapshot();
+
+          if (!cancelled) {
+            setLatestPush(snapshot.github.latestPush);
+            setLatestCommit(snapshot.github.latestCommit);
+            setGithubError(false);
+          }
+        } catch {
+          if (!cancelled) {
+            setLatestPush(null);
+            setLatestCommit(null);
+            setGithubError(true);
+          }
         }
       }
     };

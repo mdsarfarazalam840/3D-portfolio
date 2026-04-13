@@ -1,4 +1,4 @@
-name: CI-CD
+name: ci-cd
 
 on:
   pull_request:
@@ -7,71 +7,174 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create GitHub release"
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: "Optional custom release tag (example: v1.0.0)"
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
+  packages: write
 
 concurrency:
-  group: pages
+  group: portfolio-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  validate:
+    name: validate
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install dependencies
+      - name: install dependencies
         run: npm ci
 
-      - name: Run validation test suite
+      - name: run typecheck test
         run: npm run test
 
   build:
-    name: Build
+    name: build
     runs-on: ubuntu-latest
-    needs: test
+    needs: validate
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install dependencies
+      - name: install dependencies
         run: npm ci
 
-      - name: Build production bundle
+      - name: generate live data snapshot
+        run: npm run generate:live-data
+
+      - name: build production bundle
         run: npm run build
 
-      - name: Upload production artifact
+      - name: pack release artifact
+        run: tar -czf portfolio-dist.tar.gz dist
+
+      - name: upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-dist
+          path: portfolio-dist.tar.gz
+
+      - name: upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
-  deploy_prod:
-    name: PROD
+  deploy-pages:
+    name: deploy-pages
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: configure github pages
+        uses: actions/configure-pages@v5
+
+      - name: deploy to github pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  release-assets:
+    name: release-assets
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.create_release
+    steps:
+      - name: download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: portfolio-dist
+
+      - name: resolve release tag
+        id: release_meta
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+            echo "name=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            AUTO_TAG="release-$(date -u +'%Y%m%d-%H%M')-${GITHUB_SHA::7}"
+            echo "tag=$AUTO_TAG" >> "$GITHUB_OUTPUT"
+            echo "name=Automated Release $AUTO_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: attach build artifact to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tag }}
+          name: ${{ steps.release_meta.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: portfolio-dist.tar.gz
+
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: login to dockerhub
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: docker metadata
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKERHUB_USERNAME }}/3d-portfolio
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+            type=ref,event=tag
+
+      - name: build and push image
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

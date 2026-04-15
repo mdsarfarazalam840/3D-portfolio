@@ -439,6 +439,12 @@ button {
   max-width: 60rem;
 }
 
+.live-scene .scene-heading {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1.6rem;
+}
+
 .scene-heading h2,
 .contact-copy h2 {
   margin: 0.7rem 0 0;

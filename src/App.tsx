@@ -5,7 +5,8 @@ import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
-const resumePdf = new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
+const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
+const resumeFileName = "Md-Sarfaraz-Alam-Resume.pdf";
 const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
 const githubUsername = "mdsarfarazalam840";
 const spotifyWidgetUrl =
@@ -693,7 +694,7 @@ function App() {
           <a href="#contact">Contact</a>
         </nav>
 
-        <a className="resume-link" href={resumePdf}>
+        <a className="resume-link" download={resumeFileName} href={resumePdf}>
           Resume
         </a>
       </header>
@@ -916,7 +917,7 @@ function App() {
 
             <div className="contact-links" data-animate>
               {contactLinks.map((item) => (
-                <a href={item.href} key={item.label}>
+                <a download={item.label === "Resume" ? resumeFileName : undefined} href={item.href} key={item.label}>
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
                 </a>

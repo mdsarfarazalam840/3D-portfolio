@@ -16,8 +16,12 @@ on:
         required: true
         default: false
         type: boolean
-      release_tag:
-        description: "Optional custom release tag (example: v1.0.0)"
+      release_version:
+        description: "Exact release version/tag to create (example: v1.0.0)"
+        required: false
+        type: string
+      release_name:
+        description: "Optional release title shown on GitHub"
         required: false
         type: string
 
@@ -119,13 +123,23 @@ jobs:
         id: release_meta
         shell: bash
         run: |
-          if [ -n "${{ inputs.release_tag }}" ]; then
-            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
-            echo "name=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${{ inputs.release_version }}" ]; then
+            echo "tag=${{ inputs.release_version }}" >> "$GITHUB_OUTPUT"
+
+            if [ -n "${{ inputs.release_name }}" ]; then
+              echo "name=${{ inputs.release_name }}" >> "$GITHUB_OUTPUT"
+            else
+              echo "name=${{ inputs.release_version }}" >> "$GITHUB_OUTPUT"
+            fi
           else
             AUTO_TAG="release-$(date -u +'%Y%m%d-%H%M')-${GITHUB_SHA::7}"
             echo "tag=$AUTO_TAG" >> "$GITHUB_OUTPUT"
-            echo "name=Automated Release $AUTO_TAG" >> "$GITHUB_OUTPUT"
+
+            if [ -n "${{ inputs.release_name }}" ]; then
+              echo "name=${{ inputs.release_name }}" >> "$GITHUB_OUTPUT"
+            else
+              echo "name=Automated Release $AUTO_TAG" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: attach build artifact to release

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -126,6 +126,15 @@ type GeneratedLiveData = {
   };
 };
 
+type PaletteItem = {
+  id: string;
+  group: "Pages" | "Projects" | "Actions" | "Links";
+  title: string;
+  description: string;
+  keywords: string[];
+  action: () => void;
+};
+
 function formatRelativeTime(value: string) {
   const time = new Date(value).getTime();
   const diffMs = Date.now() - time;
@@ -148,20 +157,160 @@ function formatRelativeTime(value: string) {
 
 function App() {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
   const cursorCoreRef = useRef<HTMLDivElement | null>(null);
   const cursorDotRef = useRef<HTMLDivElement | null>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const commandInputRef = useRef<HTMLInputElement | null>(null);
+  const commandResultsRef = useRef<HTMLDivElement | null>(null);
   const [latestPush, setLatestPush] = useState<GithubActivity | null>(null);
   const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
   const [githubError, setGithubError] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState("");
+  const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+  const deferredCommandQuery = useDeferredValue(commandQuery);
 
   const calendarTheme = useMemo(
     () => ({
-      dark: ["#161616", "#12311d", "#1a5a2f", "#2da44e", "#56d364"],
+      dark: ["#111318", "#11252f", "#124251", "#166981", "#6ae7ff"],
     }),
     [],
   );
+
+  const openHref = (href: string) => {
+    window.open(href, "_self", "noopener,noreferrer");
+  };
+
+  const downloadResume = () => {
+    const link = document.createElement("a");
+    link.href = resumePdf;
+    link.download = resumeFileName;
+    link.click();
+  };
+
+  const scrollToSelector = (selector: string) => {
+    const target = document.querySelector<HTMLElement>(selector);
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const paletteItems = useMemo<PaletteItem[]>(
+    () => [
+      {
+        id: "page-story",
+        group: "Pages",
+        title: "Story",
+        description: "Jump to hero and operating summary.",
+        keywords: ["story", "hero", "intro", "about"],
+        action: () => scrollToSelector("#story"),
+      },
+      {
+        id: "page-live",
+        group: "Pages",
+        title: "Live signal",
+        description: "Jump to live GitHub, contact, and Spotify feed.",
+        keywords: ["live", "signal", "github", "spotify"],
+        action: () => scrollToSelector(".live-scene"),
+      },
+      {
+        id: "page-work",
+        group: "Pages",
+        title: "Work",
+        description: "Jump to experience and selected projects.",
+        keywords: ["work", "experience", "projects"],
+        action: () => scrollToSelector("#work"),
+      },
+      {
+        id: "page-capabilities",
+        group: "Pages",
+        title: "Capabilities",
+        description: "Jump to stack cloud and platform strengths.",
+        keywords: ["skills", "capabilities", "stack", "azure", "aks"],
+        action: () => scrollToSelector("#capabilities"),
+      },
+      {
+        id: "page-contact",
+        group: "Pages",
+        title: "Contact",
+        description: "Jump to direct contact links and resume access.",
+        keywords: ["contact", "email", "phone", "resume"],
+        action: () => scrollToSelector("#contact"),
+      },
+      ...featuredProjects.map<PaletteItem>((project) => ({
+        id: `project-${project.title}`,
+        group: "Projects",
+        title: project.title,
+        description: project.impact,
+        keywords: [project.title, project.stack, project.impact],
+        action: () => openHref(project.href),
+      })),
+      {
+        id: "action-resume",
+        group: "Actions",
+        title: "Download resume",
+        description: "Open PDF resume download instantly.",
+        keywords: ["resume", "cv", "download", "pdf"],
+        action: downloadResume,
+      },
+      {
+        id: "action-email",
+        group: "Actions",
+        title: "Send email",
+        description: "Start direct conversation for SRE and platform work.",
+        keywords: ["email", "mail", "contact", "hire"],
+        action: () => openHref("mailto:md.sarfarazalam840@gmail.com"),
+      },
+      {
+        id: "action-phone",
+        group: "Actions",
+        title: "Call now",
+        description: "Open direct phone link.",
+        keywords: ["phone", "call", "mobile"],
+        action: () => openHref("tel:+917717795540"),
+      },
+      {
+        id: "link-github",
+        group: "Links",
+        title: "GitHub profile",
+        description: "Open full GitHub profile.",
+        keywords: ["github", "profile", "repos"],
+        action: () => openHref(`https://github.com/${githubUsername}`),
+      },
+      {
+        id: "link-spotify",
+        group: "Links",
+        title: "Spotify profile",
+        description: "Open live listening profile.",
+        keywords: ["spotify", "music", "audio"],
+        action: () => openHref(spotifyProfileUrl),
+      },
+    ],
+    [],
+  );
+
+  const commandGroups = useMemo(() => {
+    const normalizedQuery = deferredCommandQuery.trim().toLowerCase();
+    const matchingItems = !normalizedQuery
+      ? paletteItems
+      : paletteItems.filter((item) => {
+          const haystack = `${item.title} ${item.description} ${item.keywords.join(" ")}`.toLowerCase();
+          return haystack.includes(normalizedQuery);
+        });
+
+    return ["Pages", "Projects", "Actions", "Links"]
+      .map((group) => ({
+        group: group as PaletteItem["group"],
+        items: matchingItems.filter((item) => item.group === group),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [deferredCommandQuery, paletteItems]);
+
+  const flatCommandItems = useMemo(() => commandGroups.flatMap((group) => group.items), [commandGroups]);
 
   useEffect(() => {
     let cancelled = false;
@@ -263,11 +412,123 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!commandOpen) {
+      return;
+    }
+
+    commandInputRef.current?.focus();
+  }, [commandOpen]);
+
+  useEffect(() => {
+    const results = commandResultsRef.current;
+
+    if (!results || !commandOpen) {
+      return;
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      results.scrollTop += event.deltaY;
+    };
+
+    results.addEventListener("wheel", onWheel, { passive: false });
+    return () => results.removeEventListener("wheel", onWheel);
+  }, [commandOpen]);
+
+  useEffect(() => {
+    const { body } = document;
+
+    if (commandOpen) {
+      lenisRef.current?.stop();
+      body.style.overflow = "hidden";
+      return () => {
+        body.style.overflow = "";
+        lenisRef.current?.start();
+      };
+    }
+
+    body.style.overflow = "";
+    lenisRef.current?.start();
+
+    return () => {
+      body.style.overflow = "";
+    };
+  }, [commandOpen]);
+
+  useEffect(() => {
+    if (flatCommandItems.length === 0) {
+      setActiveCommandIndex(0);
+      return;
+    }
+
+    setActiveCommandIndex((current) => Math.min(current, flatCommandItems.length - 1));
+  }, [flatCommandItems]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const commandShortcut = (event.ctrlKey || event.metaKey || event.shiftKey) && event.key.toLowerCase() === "k";
+
+      if (commandShortcut) {
+        event.preventDefault();
+        setCommandOpen(true);
+        return;
+      }
+
+      if (!commandOpen) {
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setCommandOpen(false);
+        setCommandQuery("");
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveCommandIndex((current) => {
+          if (flatCommandItems.length === 0) {
+            return 0;
+          }
+
+          return (current + 1) % flatCommandItems.length;
+        });
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveCommandIndex((current) => {
+          if (flatCommandItems.length === 0) {
+            return 0;
+          }
+
+          return (current - 1 + flatCommandItems.length) % flatCommandItems.length;
+        });
+        return;
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        flatCommandItems[activeCommandIndex]?.action();
+        setCommandOpen(false);
+        setCommandQuery("");
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeCommandIndex, commandOpen, flatCommandItems]);
+
+  useEffect(() => {
     const lenis = new Lenis({
       duration: 1.15,
       smoothWheel: true,
       syncTouch: false,
     });
+    lenisRef.current = lenis;
 
     let frameId = 0;
     const raf = (time: number) => {
@@ -370,6 +631,7 @@ function App() {
     lenis.on("scroll", ScrollTrigger.update);
 
     return () => {
+      lenisRef.current = null;
       window.cancelAnimationFrame(frameId);
       lenis.destroy();
       ctx.revert();
@@ -471,7 +733,7 @@ function App() {
       }
     };
 
-    const interactiveNodes = Array.from(document.querySelectorAll("a, button, .project-row, .live-card"));
+    const interactiveSelector = "a, button, input, .project-row, .live-card, .command-item";
     const animateCursor = (scale: number, borderColor: string, boxShadow: string, duration: number) =>
       gsap.to(cursorCore, {
         scale,
@@ -530,16 +792,30 @@ function App() {
     const onUp = (event: MouseEvent) => {
       syncPointer(event.clientX, event.clientY);
     };
-    interactiveNodes.forEach((node) => {
-      node.addEventListener("mouseenter", onEnter);
-      node.addEventListener("mouseleave", onLeave);
-    });
+    const onPointerOver = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest(interactiveSelector)) {
+        onEnter();
+      }
+    };
+    const onPointerOut = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const relatedTarget = event.relatedTarget as HTMLElement | null;
+      const leftInteractive = target?.closest(interactiveSelector);
+      const nextInteractive = relatedTarget?.closest(interactiveSelector);
+
+      if (leftInteractive && !nextInteractive) {
+        onLeave();
+      }
+    };
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
+    document.addEventListener("mouseover", onPointerOver);
+    document.addEventListener("mouseout", onPointerOut);
     document.addEventListener("mouseleave", hideCursor);
 
     let frameId = 0;
@@ -657,12 +933,10 @@ function App() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
+      document.removeEventListener("mouseover", onPointerOver);
+      document.removeEventListener("mouseout", onPointerOut);
       document.removeEventListener("mouseleave", hideCursor);
       window.cancelAnimationFrame(frameId);
-      interactiveNodes.forEach((node) => {
-        node.removeEventListener("mouseenter", onEnter);
-        node.removeEventListener("mouseleave", onLeave);
-      });
     };
   }, []);
 
@@ -694,10 +968,102 @@ function App() {
           <a href="#contact">Contact</a>
         </nav>
 
-        <a className="resume-link" download={resumeFileName} href={resumePdf}>
-          Resume
-        </a>
+        <div className="header-actions">
+          <button
+            aria-controls="command-palette"
+            aria-expanded={commandOpen}
+            aria-label="Open command palette"
+            className="command-trigger"
+            onClick={() => setCommandOpen(true)}
+            type="button"
+          >
+            <span className="command-trigger__icon" aria-hidden="true">
+              /
+            </span>
+            <span className="command-trigger__hint">Shift K</span>
+          </button>
+
+          <a className="resume-link" download={resumeFileName} href={resumePdf}>
+            Resume
+          </a>
+        </div>
       </header>
+
+      <div
+        aria-hidden={!commandOpen}
+        className={`command-overlay${commandOpen ? " command-overlay--open" : ""}`}
+        onClick={() => {
+          setCommandOpen(false);
+          setCommandQuery("");
+        }}
+      >
+        <section
+          aria-label="Command palette"
+          className="command-palette"
+          id="command-palette"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="command-palette__halo" aria-hidden="true" />
+          <div className="command-palette__input-shell">
+            <span className="command-palette__search-icon" aria-hidden="true">
+              Search
+            </span>
+            <input
+              onChange={(event) => {
+                setCommandQuery(event.target.value);
+                setActiveCommandIndex(0);
+              }}
+              placeholder="Type command or search signal..."
+              ref={commandInputRef}
+              type="text"
+              value={commandQuery}
+            />
+            <span className="command-palette__esc">ESC</span>
+          </div>
+
+          <div className="command-results" ref={commandResultsRef} role="listbox">
+            {commandGroups.length > 0 ? (
+              commandGroups.map((group) => (
+                <div className="command-group" key={group.group}>
+                  <div className="command-group__label">{group.group}</div>
+                  <div className="command-group__items">
+                    {group.items.map((item) => {
+                      const itemIndex = flatCommandItems.findIndex((entry) => entry.id === item.id);
+
+                      return (
+                        <button
+                          className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
+                          key={item.id}
+                          onClick={() => {
+                            item.action();
+                            setCommandOpen(false);
+                            setCommandQuery("");
+                          }}
+                          onMouseEnter={() => setActiveCommandIndex(itemIndex)}
+                          type="button"
+                        >
+                          <span className="command-item__glyph" aria-hidden="true">
+                            {item.group.slice(0, 1)}
+                          </span>
+                          <span className="command-item__copy">
+                            <strong>{item.title}</strong>
+                            <small>{item.description}</small>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="command-empty">
+                <strong>No signal found.</strong>
+                <small>Try project, resume, GitHub, Azure, work.</small>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
 
       <main className="portfolio-main" id="top">
         <section className="scene-section hero-scene" id="story">

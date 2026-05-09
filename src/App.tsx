@@ -1,8 +1,9 @@
 import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
+import { NeuralBackground } from "@/components/ui/neural-background";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
@@ -12,8 +13,6 @@ const githubUsername = "mdsarfarazalam840";
 const spotifyWidgetUrl =
   "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true";
 const spotifyProfileUrl = "https://open.spotify.com/user/oj1xerhb9fby7dckdhp0yw3no";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const heroLines = [
   "Cloud reliability",
@@ -192,11 +191,15 @@ function App() {
 
   const scrollToSelector = (selector: string) => {
     const target = document.querySelector<HTMLElement>(selector);
-    if (!target) {
+    if (!target || !lenisRef.current) {
       return;
     }
 
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    lenisRef.current.scrollTo(target, {
+      duration: 1.4,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      offset: -80,
+    });
   };
 
   const paletteItems = useMemo<PaletteItem[]>(
@@ -512,9 +515,12 @@ function App() {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        flatCommandItems[activeCommandIndex]?.action();
+        const action = flatCommandItems[activeCommandIndex]?.action;
         setCommandOpen(false);
         setCommandQuery("");
+        requestAnimationFrame(() => {
+          action?.();
+        });
       }
     };
 
@@ -537,105 +543,10 @@ function App() {
     };
     frameId = window.requestAnimationFrame(raf);
 
-    const ctx = gsap.context(() => {
-      gsap.set(".reveal-line__inner", { yPercent: 110 });
-      gsap.set(".hero-fade", { opacity: 0, y: 28 });
-
-      const heroTimeline = gsap.timeline({ defaults: { ease: "power4.out" } });
-      heroTimeline
-        .to(".reveal-line__inner", {
-          yPercent: 0,
-          duration: 1.1,
-          stagger: 0.1,
-        })
-        .to(
-          ".hero-fade",
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            stagger: 0.08,
-          },
-          "-=0.7",
-        );
-
-      gsap.to(".portrait-frame", {
-        y: -18,
-        duration: 2.8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-
-      gsap.to(".portrait-ring", {
-        rotate: 360,
-        duration: 12,
-        repeat: -1,
-        ease: "none",
-      });
-
-      gsap.utils.toArray<HTMLElement>(".scene-section").forEach((section) => {
-        const targets = section.querySelectorAll<HTMLElement>("[data-animate]");
-
-        gsap.fromTo(
-          targets,
-          { opacity: 0, y: 42 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            stagger: 0.08,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 78%",
-            },
-          },
-        );
-
-        gsap.fromTo(
-          section,
-          { opacity: 0.5 },
-          {
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              end: "top 25%",
-              scrub: true,
-            },
-          },
-        );
-      });
-
-      gsap.utils.toArray<HTMLElement>(".section-wash").forEach((wash) => {
-        gsap.fromTo(
-          wash,
-          { yPercent: 14, opacity: 0.2 },
-          {
-            yPercent: -10,
-            opacity: 0.55,
-            ease: "none",
-            scrollTrigger: {
-              trigger: wash.parentElement,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          },
-        );
-      });
-    }, rootRef);
-
-    lenis.on("scroll", ScrollTrigger.update);
-
     return () => {
       lenisRef.current = null;
       window.cancelAnimationFrame(frameId);
       lenis.destroy();
-      ctx.revert();
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 
@@ -661,35 +572,30 @@ function App() {
       };
     }
 
-    const ringSize = 34;
-    const dotSize = 8;
+    const ringSize = 44;
+    const dotSize = 10;
 
     gsap.set([cursor, dot], { autoAlpha: 0, x: -999, y: -999 });
 
-    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    const ringPosition = { x: -999, y: -999 };
-    const dotPosition = { x: -999, y: -999 };
+    let cursorX = -999;
+    let cursorY = -999;
+    let dotX = -999;
+    let dotY = -999;
     const motion = { vx: 0, vy: 0, speed: 0 };
-    const ambientParticles = Array.from({ length: 72 }, () => ({
+    const ambientParticles = Array.from({ length: 48 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.45,
-      vy: (Math.random() - 0.5) * 0.45,
-      size: Math.random() * 2.4 + 0.8,
-      alpha: Math.random() * 0.4 + 0.18,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      size: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.2 + 0.08,
     }));
     const trailParticles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
-    const burstParticles: Array<{
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      life: number;
-      size: number;
-      hue: string;
-    }> = [];
-    let lastMoveX = pointer.x;
-    let lastMoveY = pointer.y;
+
+    const trailPoints = Array.from({ length: 18 }, () => ({ x: 0, y: 0 }));
+
+    let lastMoveX = 0;
+    let lastMoveY = 0;
     let lastMoveTime = performance.now();
     let hoverActive = false;
 
@@ -698,99 +604,69 @@ function App() {
       canvas.height = window.innerHeight;
     };
 
-    const syncPointer = (clientX: number, clientY: number, now = performance.now()) => {
+    const onMove = (event: MouseEvent) => {
+      const now = performance.now();
       const deltaTime = Math.max(now - lastMoveTime, 16);
-      motion.vx = clientX - lastMoveX;
-      motion.vy = clientY - lastMoveY;
-      motion.speed = Math.min(Math.hypot(motion.vx, motion.vy) / deltaTime, 2.4);
-      lastMoveX = clientX;
-      lastMoveY = clientY;
+      motion.vx = event.clientX - lastMoveX;
+      motion.vy = event.clientY - lastMoveY;
+      motion.speed = Math.min(Math.hypot(motion.vx, motion.vy) / deltaTime, 1.5);
+      lastMoveX = event.clientX;
+      lastMoveY = event.clientY;
       lastMoveTime = now;
-      pointer.x = clientX;
-      pointer.y = clientY;
 
-      root.style.setProperty("--pointer-x", `${clientX}px`);
-      root.style.setProperty("--pointer-y", `${clientY}px`);
+      cursorX = event.clientX - ringSize / 2;
+      cursorY = event.clientY - ringSize / 2;
+      dotX = event.clientX - dotSize / 2;
+      dotY = event.clientY - dotSize / 2;
+
+      root.style.setProperty("--pointer-x", `${event.clientX}px`);
+      root.style.setProperty("--pointer-y", `${event.clientY}px`);
       root.style.setProperty("--pointer-speed", `${motion.speed.toFixed(3)}`);
 
       gsap.set([cursor, dot], { autoAlpha: 1 });
-    };
 
-    const onMove = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
+      for (let i = trailPoints.length - 1; i > 0; i--) {
+        trailPoints[i].x = trailPoints[i - 1].x;
+        trailPoints[i].y = trailPoints[i - 1].y;
+      }
+      trailPoints[0].x = event.clientX;
+      trailPoints[0].y = event.clientY;
 
-      trailParticles.push({
-        x: event.clientX,
-        y: event.clientY,
-        vx: motion.vx * 0.08 + (Math.random() - 0.5) * 1.8,
-        vy: motion.vy * 0.08 + (Math.random() - 0.5) * 1.8,
-        life: 1,
-        size: Math.random() * 4 + 1.4 + motion.speed * 3.2,
-      });
+      if (motion.speed > 0.3) {
+        trailParticles.push({
+          x: event.clientX,
+          y: event.clientY,
+          vx: motion.vx * 0.05 + (Math.random() - 0.5) * 0.8,
+          vy: motion.vy * 0.05 + (Math.random() - 0.5) * 0.8,
+          life: 1,
+          size: Math.random() * 2.5 + 0.8 + motion.speed * 1.5,
+        });
 
-      if (trailParticles.length > 48) {
-        trailParticles.shift();
+        if (trailParticles.length > 32) {
+          trailParticles.shift();
+        }
       }
     };
 
     const interactiveSelector = "a, button, input, .project-row, .live-card, .command-item";
-    const animateCursor = (scale: number, borderColor: string, boxShadow: string, duration: number) =>
-      gsap.to(cursorCore, {
-        scale,
-        borderColor,
-        boxShadow,
-        duration,
-        overwrite: true,
-      });
-
     const onEnter = () => {
       hoverActive = true;
-      animateCursor(
-        1.42,
-        "rgba(0,212,255,0.72)",
-        "0 0 28px rgba(0, 212, 255, 0.2), inset 0 0 14px rgba(139, 92, 246, 0.12)",
-        0.18,
-      );
-      gsap.to(dot, { scale: 1.25, duration: 0.18, overwrite: true });
+      gsap.to(cursorCore, { scale: 1.2, duration: 0.18, overwrite: true });
+      gsap.to(dot, { scale: 1.15, duration: 0.18, overwrite: true });
     };
     const onLeave = () => {
       hoverActive = false;
-      animateCursor(
-        1,
-        "rgba(255,255,255,0.16)",
-        "0 0 14px rgba(0, 212, 255, 0.1), inset 0 0 10px rgba(139, 92, 246, 0.08)",
-        0.18,
-      );
+      gsap.to(cursorCore, { scale: 1, duration: 0.18, overwrite: true });
       gsap.to(dot, { scale: 1, duration: 0.18, overwrite: true });
     };
     const hideCursor = () => gsap.to([cursor, dot], { autoAlpha: 0, duration: 0.16, overwrite: true });
-    const onDown = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
-
-      for (let index = 0; index < 16; index += 1) {
-        const angle = (Math.PI * 2 * index) / 16;
-        const burstSpeed = 1.8 + Math.random() * 2.8;
-        burstParticles.push({
-          x: event.clientX,
-          y: event.clientY,
-          vx: Math.cos(angle) * burstSpeed,
-          vy: Math.sin(angle) * burstSpeed,
-          life: 1,
-          size: Math.random() * 3.2 + 1.2,
-          hue: index % 2 === 0 ? "rgba(0, 212, 255," : "rgba(139, 92, 246,",
-        });
-      }
-
-      gsap.fromTo(cursorCore, { scale: hoverActive ? 1.46 : 1.18 }, {
-        scale: hoverActive ? 1.42 : 1,
-        duration: 0.26,
-        ease: "power3.out",
-        overwrite: true,
-      });
-      gsap.fromTo(dot, { scale: 2.2 }, { scale: hoverActive ? 1.25 : 1, duration: 0.22, overwrite: true });
+    const onDown = () => {
+      gsap.to(cursorCore, { scale: hoverActive ? 1.3 : 1.1, duration: 0.22, ease: "power3.out", overwrite: true });
+      gsap.to(dot, { scale: 1.6, duration: 0.18, overwrite: true });
     };
-    const onUp = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
+    const onUp = () => {
+      gsap.to(cursorCore, { scale: hoverActive ? 1.2 : 1, duration: 0.18, ease: "power3.out", overwrite: true });
+      gsap.to(dot, { scale: hoverActive ? 1.15 : 1, duration: 0.18, overwrite: true });
     };
     const onPointerOver = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
@@ -820,30 +696,22 @@ function App() {
 
     let frameId = 0;
     const render = () => {
-      ringPosition.x += (pointer.x - ringSize / 2 - ringPosition.x) * 0.16;
-      ringPosition.y += (pointer.y - ringSize / 2 - ringPosition.y) * 0.16;
-      dotPosition.x += (pointer.x - dotSize / 2 - dotPosition.x) * 0.34;
-      dotPosition.y += (pointer.y - dotSize / 2 - dotPosition.y) * 0.34;
-
-      gsap.set(cursor, { x: ringPosition.x, y: ringPosition.y });
-      gsap.set(dot, { x: dotPosition.x, y: dotPosition.y });
+      gsap.set(cursor, { x: cursorX, y: cursorY });
+      gsap.set(dot, { x: dotX, y: dotY });
 
       context.clearRect(0, 0, canvas.width, canvas.height);
-      context.globalCompositeOperation = "lighter";
 
       ambientParticles.forEach((particle) => {
-        const dx = pointer.x - particle.x;
-        const dy = pointer.y - particle.y;
+        const dx = (cursorX + ringSize / 2) - particle.x;
+        const dy = (cursorY + ringSize / 2) - particle.y;
         const distance = Math.hypot(dx, dy);
 
-        if (distance < 220) {
-          const force = ((220 - distance) / 220) * (0.8 + motion.speed * 1.6);
-          particle.x -= (dx / distance) * force * 2.1 || 0;
-          particle.y -= (dy / distance) * force * 2.1 || 0;
+        if (distance < 180) {
+          const force = ((180 - distance) / 180) * (0.4 + motion.speed * 0.8);
+          particle.x -= (dx / distance) * force * 1.5 || 0;
+          particle.y -= (dy / distance) * force * 1.5 || 0;
         }
 
-        particle.vx += motion.vx * 0.0008;
-        particle.vy += motion.vy * 0.0008;
         particle.vx *= 0.992;
         particle.vy *= 0.992;
         particle.x += particle.vx;
@@ -853,31 +721,10 @@ function App() {
         if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
 
         context.beginPath();
-        context.fillStyle = `rgba(0, 212, 255, ${particle.alpha + motion.speed * 0.05})`;
+        context.fillStyle = `rgba(255, 255, 255, ${particle.alpha + motion.speed * 0.03})`;
         context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         context.fill();
       });
-
-      if (trailParticles.length > 1) {
-        context.beginPath();
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.lineWidth = 10 + motion.speed * 8;
-
-        trailParticles.forEach((particle, index) => {
-          if (index === 0) {
-            context.moveTo(particle.x, particle.y);
-          } else {
-            const previous = trailParticles[index - 1];
-            const midpointX = (previous.x + particle.x) / 2;
-            const midpointY = (previous.y + particle.y) / 2;
-            context.quadraticCurveTo(previous.x, previous.y, midpointX, midpointY);
-          }
-        });
-
-        context.strokeStyle = `rgba(99, 102, 241, ${0.08 + motion.speed * 0.08})`;
-        context.stroke();
-      }
 
       for (let index = trailParticles.length - 1; index >= 0; index -= 1) {
         const particle = trailParticles[index];
@@ -885,7 +732,7 @@ function App() {
         particle.y += particle.vy;
         particle.vx *= 0.97;
         particle.vy *= 0.97;
-        particle.life -= 0.032;
+        particle.life -= 0.028;
 
         if (particle.life <= 0) {
           trailParticles.splice(index, 1);
@@ -893,31 +740,42 @@ function App() {
         }
 
         context.beginPath();
-        context.fillStyle = `rgba(139, 92, 246, ${particle.life * 0.26})`;
+        context.fillStyle = `rgba(255, 255, 255, ${particle.life * 0.15})`;
         context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
         context.fill();
       }
 
-      for (let index = burstParticles.length - 1; index >= 0; index -= 1) {
-        const particle = burstParticles[index];
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.vx *= 0.95;
-        particle.vy *= 0.95;
-        particle.life -= 0.045;
+      if (trailPoints.length > 2 && motion.speed > 0.05) {
+        context.beginPath();
+        context.moveTo(trailPoints[0].x, trailPoints[0].y);
 
-        if (particle.life <= 0) {
-          burstParticles.splice(index, 1);
-          continue;
+        for (let i = 1; i < trailPoints.length - 1; i++) {
+          const p0 = trailPoints[i - 1];
+          const p1 = trailPoints[i];
+          const p2 = trailPoints[i + 1];
+
+          const midX0 = (p0.x + p1.x) / 2;
+          const midY0 = (p0.y + p1.y) / 2;
+          const midX1 = (p1.x + p2.x) / 2;
+          const midY1 = (p1.y + p2.y) / 2;
+
+          context.quadraticCurveTo(midX0, midY0, midX1, midY1);
         }
 
-        context.beginPath();
-        context.fillStyle = `${particle.hue} ${particle.life * 0.5})`;
-        context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
-        context.fill();
-      }
+        const lastPoint = trailPoints[trailPoints.length - 1];
+        context.lineTo(lastPoint.x, lastPoint.y);
 
-      context.globalCompositeOperation = "source-over";
+        const speedAlpha = Math.min(motion.speed * 0.6, 0.35);
+        context.strokeStyle = `rgba(0, 212, 255, ${speedAlpha})`;
+        context.lineWidth = 2.5;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.stroke();
+
+        context.lineWidth = 1.2;
+        context.strokeStyle = `rgba(160, 240, 255, ${speedAlpha * 0.6})`;
+        context.stroke();
+      }
 
       frameId = window.requestAnimationFrame(render);
     };
@@ -942,8 +800,8 @@ function App() {
 
   return (
     <div className="portfolio-shell" ref={rootRef}>
+      <NeuralBackground className="neural-bg" />
       <canvas className="particle-canvas" ref={particleCanvasRef} />
-      <div className="liquid-field" aria-hidden="true" />
       <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
       </div>
@@ -962,10 +820,10 @@ function App() {
         </a>
 
         <nav className="site-nav" aria-label="Primary">
-          <a href="#story">Story</a>
-          <a href="#work">Work</a>
-          <a href="#capabilities">Capabilities</a>
-          <a href="#contact">Contact</a>
+          <button onClick={() => scrollToSelector("#story")}>Story</button>
+          <button onClick={() => scrollToSelector("#work")}>Work</button>
+          <button onClick={() => scrollToSelector("#capabilities")}>Capabilities</button>
+          <button onClick={() => scrollToSelector("#contact")}>Contact</button>
         </nav>
 
         <div className="header-actions">
@@ -1035,9 +893,12 @@ function App() {
                           className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
                           key={item.id}
                           onClick={() => {
-                            item.action();
+                            const action = item.action;
                             setCommandOpen(false);
                             setCommandQuery("");
+                            requestAnimationFrame(() => {
+                              action();
+                            });
                           }}
                           onMouseEnter={() => setActiveCommandIndex(itemIndex)}
                           type="button"
@@ -1066,182 +927,342 @@ function App() {
       </div>
 
       <main className="portfolio-main" id="top">
-        <section className="scene-section hero-scene" id="story">
+        <motion.section
+          className="scene-section hero-scene"
+          id="story"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="section-wash" aria-hidden="true" />
 
-          <div className="hero-copy">
-            <p className="hero-kicker hero-fade">Azure / AKS / observability / CI-CD / incident response</p>
+          <motion.div
+            className="hero-copy"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <motion.p
+              className="hero-kicker"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              Azure / AKS / observability / CI-CD / incident response
+            </motion.p>
 
             <h1 className="hero-title" aria-label={heroLines.join(" ")}>
-              {heroLines.map((line) => (
+              {heroLines.map((line, index) => (
                 <span className="reveal-line" key={line}>
-                  <span className="reveal-line__inner">{line}</span>
+                  <motion.span
+                    className="reveal-line__inner"
+                    initial={{ y: "110%" }}
+                    animate={{ y: "0%" }}
+                    transition={{ duration: 0.8, delay: 0.4 + index * 0.1, ease: [0.33, 1, 0.68, 1] }}
+                  >
+                    {line}
+                  </motion.span>
                 </span>
               ))}
             </h1>
 
-            <p className="hero-summary hero-fade">
+            <motion.p
+              className="hero-summary"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.7 }}
+            >
               I build calmer systems. Over the last 4+ years I have reduced MTTR, tuned cloud cost, improved AKS
               reliability, and supported enterprise production workloads where failure has real operational weight.
-            </p>
+            </motion.p>
 
-            <div className="hero-actions hero-fade">
+            <motion.div
+              className="hero-actions"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.8 }}
+            >
               <a className="text-button text-button--solid" href="#work">
                 View selected work
               </a>
               <a className="text-button" href="https://github.com/mdsarfarazalam840">
                 GitHub
               </a>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="hero-visual hero-fade">
-            <div className="hero-stage">
+          <motion.div
+            className="hero-visual"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.5 }}
+          >
+            <motion.div
+              className="hero-stage"
+              animate={{ y: [-18, 0, -18] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+            >
               <div className="hero-canvas" aria-hidden="true">
                 <Suspense fallback={<div className="hero-canvas__fallback" />}>
                   <HeroScene />
                 </Suspense>
               </div>
 
-              <div className="portrait-frame">
-                <div className="portrait-ring" />
+              <motion.div
+                className="portrait-frame"
+                animate={{ y: [-18, 0, -18] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <motion.div
+                  className="portrait-ring"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                />
                 <div className="portrait-core">
                   <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="live-note">
+              <motion.div
+                className="live-note"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.6 }}
+              >
                 <span>Now</span>
                 <p>Improving Azure reliability, reducing incident noise, and building release confidence.</p>
-              </div>
-            </div>
-          </div>
-        </section>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
-        <section className="scene-section impact-scene">
+        <motion.section
+          className="scene-section impact-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.3 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <p className="scene-label" data-animate>
+          <motion.p
+            className="scene-label"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             Impact
-          </p>
+          </motion.p>
           <div className="impact-grid">
-            {signalPoints.map((point) => (
-              <article className="impact-item" data-animate key={point.label}>
+            {signalPoints.map((point, index) => (
+              <motion.article
+                className="impact-item"
+                key={point.label}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
+              >
                 <span className="impact-value">{point.value}</span>
                 <div>
                   <h2>{point.label}</h2>
                   <p>{point.detail}</p>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section live-scene">
+        <motion.section
+          className="scene-section live-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Live</p>
             <h2>Live signal.</h2>
-          </div>
+          </motion.div>
 
           <div className="live-grid">
-            <article className="live-card live-card--github" data-animate>
-              <div className="live-card__head">
-                <span>Parth's Github</span>
-                <a href={`https://github.com/${githubUsername}`}>Open profile</a>
-              </div>
-
-              <div className="github-stack">
-                {latestPush ? (
-                  <a className="github-block" href={latestPush.commitUrl}>
-                    <div className="github-block__meta">
-                      <span>Latest push</span>
-                      <small>{formatRelativeTime(latestPush.pushedAt)}</small>
-                    </div>
-                    <strong>"{latestPush.message}"</strong>
-                    <p>Repo: {latestPush.repo}</p>
+            {[
+              { content: "github", delay: 0 },
+              { content: "cta", delay: 0.1 },
+              { content: "spotify", delay: 0.2 },
+            ].map((item) => (
+              <motion.article
+                key={item.content}
+                className={`live-card live-card--${item.content}`}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 1, delay: item.delay, ease: [0.33, 1, 0.68, 1] }}
+              >
+                <div className="live-card__head">
+                  <span>{item.content === "github" ? "Parth's Github" : item.content === "cta" ? "Visitors" : "Last played"}</span>
+                  <a href={item.content === "spotify" ? spotifyProfileUrl : `https://github.com/${githubUsername}`}>
+                    Open {item.content === "github" ? "profile" : item.content === "cta" ? "" : "Spotify"}
                   </a>
-                ) : (
-                  <div className="live-empty">{githubError ? "GitHub API blocked or rate limited." : "Push data loading..."}</div>
-                )}
-
-                {latestCommit ? (
-                  <a className="github-block" href={latestCommit.commitUrl}>
-                    <div className="github-block__meta">
-                      <span>Latest commit</span>
-                      <small>{formatRelativeTime(latestCommit.pushedAt)}</small>
-                    </div>
-                    <strong>"{latestCommit.message}"</strong>
-                    <p>Repo: {latestCommit.repo}</p>
-                  </a>
-                ) : (
-                  <div className="live-empty">{githubError ? "Commit data unavailable." : "Commit data loading..."}</div>
-                )}
-              </div>
-            </article>
-
-            <article className="live-card live-card--cta" data-animate>
-              <div className="live-card__head">
-                <span>Visitors</span>
-              </div>
-              <div className="signature-card">
-                <h3>
-                  Leave your <em>signal</em>
-                </h3>
-                <p>Open for SRE, Azure reliability, and platform work.</p>
-                <a className="signature-link" href="mailto:md.sarfarazalam840@gmail.com">
-                  Contact me
-                </a>
-              </div>
-            </article>
-
-            <article className="live-card live-card--spotify" data-animate>
-              <div className="live-card__head">
-                <span>Last played</span>
-                <a href={spotifyProfileUrl}>Open Spotify</a>
-              </div>
-              <a className="spotify-widget spotify-widget--futuristic" href={spotifyProfileUrl}>
-                <span className="spotify-widget__glow" aria-hidden="true" />
-                <span className="spotify-widget__grid" aria-hidden="true" />
-                <span className="spotify-widget__orbit" aria-hidden="true" />
-                <div className="spotify-widget__chrome">
-                  <span className="spotify-pill">Live audio signal</span>
                 </div>
-                <img alt="Spotify recently played widget" src={spotifyWidgetUrl} />
-              </a>
-            </article>
-          </div>
-        </section>
 
-        <section className="scene-section narrative-scene" id="work">
+                {item.content === "github" && (
+                  <div className="github-stack">
+                    {latestPush ? (
+                      <motion.a
+                        className="github-block"
+                        href={latestPush.commitUrl}
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <div className="github-block__meta">
+                          <span>Latest push</span>
+                          <small>{formatRelativeTime(latestPush.pushedAt)}</small>
+                        </div>
+                        <strong>"{latestPush.message}"</strong>
+                        <p>Repo: {latestPush.repo}</p>
+                      </motion.a>
+                    ) : (
+                      <div className="live-empty">{githubError ? "GitHub API blocked or rate limited." : "Push data loading..."}</div>
+                    )}
+
+                    {latestCommit ? (
+                      <motion.a
+                        className="github-block"
+                        href={latestCommit.commitUrl}
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <div className="github-block__meta">
+                          <span>Latest commit</span>
+                          <small>{formatRelativeTime(latestCommit.pushedAt)}</small>
+                        </div>
+                        <strong>"{latestCommit.message}"</strong>
+                        <p>Repo: {latestCommit.repo}</p>
+                      </motion.a>
+                    ) : (
+                      <div className="live-empty">{githubError ? "Commit data unavailable." : "Commit data loading..."}</div>
+                    )}
+                  </div>
+                )}
+
+                {item.content === "cta" && (
+                  <div className="signature-card">
+                    <h3>
+                      Leave your <em>signal</em>
+                    </h3>
+                    <p>Open for SRE, Azure reliability, and platform work.</p>
+                    <motion.a
+                      className="signature-link"
+                      href="mailto:md.sarfarazalam840@gmail.com"
+                      whileHover={{ y: -2, boxShadow: "0 0 36px rgba(255, 166, 71, 0.22)" }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      Contact me
+                    </motion.a>
+                  </div>
+                )}
+
+                {item.content === "spotify" && (
+                  <motion.a
+                    className="spotify-widget spotify-widget--futuristic"
+                    href={spotifyProfileUrl}
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <span className="spotify-widget__glow" aria-hidden="true" />
+                    <span className="spotify-widget__grid" aria-hidden="true" />
+                    <span className="spotify-widget__orbit" aria-hidden="true" />
+                    <div className="spotify-widget__chrome">
+                      <span className="spotify-pill">Live audio signal</span>
+                    </div>
+                    <img alt="Spotify recently played widget" src={spotifyWidgetUrl} />
+                  </motion.a>
+                )}
+              </motion.article>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="scene-section narrative-scene"
+          id="work"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Experience</p>
             <h2>Production work, told as operating narrative not resume dump.</h2>
-          </div>
+          </motion.div>
 
           <div className="story-list">
-            {experienceStories.map((story) => (
-              <article className="story-item" data-animate key={story.title}>
+            {experienceStories.map((story, index) => (
+              <motion.article
+                className="story-item"
+                key={story.title}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
+              >
                 <span>{story.period}</span>
                 <div>
                   <h3>{story.title}</h3>
                   <p>{story.copy}</p>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section projects-scene">
+        <motion.section
+          className="scene-section projects-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Projects</p>
             <h2>Few projects. Real impact. No clutter.</h2>
-          </div>
+          </motion.div>
 
           <div className="project-list">
-            {featuredProjects.map((project) => (
-              <a className="project-row" data-animate href={project.href} key={project.title}>
+            {featuredProjects.map((project, index) => (
+              <motion.a
+                className="project-row"
+                href={project.href}
+                key={project.title}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                whileHover={{ x: 6, boxShadow: "0 22px 50px rgba(0, 0, 0, 0.18)" }}
+                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
+              >
                 <div className="project-row__main">
                   <h3>{project.title}</h3>
                   <p>{project.impact}</p>
@@ -1250,56 +1271,124 @@ function App() {
                   <span>{project.stack}</span>
                   <strong>Open repo</strong>
                 </div>
-              </a>
+              </motion.a>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section capabilities-scene" id="capabilities">
+        <motion.section
+          className="scene-section capabilities-scene"
+          id="capabilities"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Capabilities</p>
             <h2>Stack shown with restraint.</h2>
-          </div>
+          </motion.div>
 
-          <div className="capability-cloud" data-animate>
-            {capabilityGroups.map((item) => (
-              <span key={item}>{item}</span>
+          <motion.div
+            className="capability-cloud"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
+          >
+            {capabilityGroups.map((item, index) => (
+              <motion.span
+                key={item}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 0.92, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                whileHover={{ scale: 1.1, color: "#00d4ff" }}
+                transition={{ duration: 0.4, delay: index * 0.03 }}
+              >
+                {item}
+              </motion.span>
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
-        <section className="scene-section contact-scene" id="contact">
+        <motion.section
+          className="scene-section contact-scene"
+          id="contact"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
           <div className="contact-layout">
-            <div className="contact-copy" data-animate>
+            <motion.div
+              className="contact-copy"
+              initial={{ opacity: 0, y: 42 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.5 }}
+              transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+            >
               <p className="scene-label">Contact</p>
               <h2>Open for reliability-first engineering, platform support, and cloud operations work.</h2>
               <p>
                 Best fit for teams that care about release discipline, observability quality, AKS operations, incident
                 response, and measurable production improvement.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="contact-links" data-animate>
-              {contactLinks.map((item) => (
-                <a download={item.label === "Resume" ? resumeFileName : undefined} href={item.href} key={item.label}>
+            <motion.div
+              className="contact-links"
+              initial={{ opacity: 0, y: 42 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.5 }}
+              transition={{ duration: 1, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
+            >
+              {contactLinks.map((item, index) => (
+                <motion.a
+                  download={item.label === "Resume" ? resumeFileName : undefined}
+                  href={item.href}
+                  key={item.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: false, amount: 0.5 }}
+                  whileHover={{ x: 5 }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.08 }}
+                >
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
-                </a>
+                </motion.a>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section github-graph-scene">
+        <motion.section
+          className="scene-section github-graph-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">GitHub graph</p>
             <h2>Contribution graph sits at bottom now.</h2>
-          </div>
+          </motion.div>
 
-          <div className="calendar-shell calendar-shell--bottom" data-animate>
+          <div className="calendar-shell calendar-shell--bottom" data-animate style={{ contain: 'layout paint' }}>
             <GitHubCalendar
               blockMargin={4}
               blockRadius={3}
@@ -1310,7 +1399,7 @@ function App() {
               username={githubUsername}
             />
           </div>
-        </section>
+        </motion.section>
       </main>
     </div>
   );

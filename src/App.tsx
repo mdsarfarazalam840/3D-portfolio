@@ -5,6 +5,10 @@ import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
 import { NeuralBackground } from "@/components/ui/neural-background";
 import SimpleMarquee from "@/components/ui/simple-marquee";
+import CenterUnderline from "@/components/ui/underline-center";
+import ComesInGoesOutUnderline from "@/components/ui/underline-comes-in-goes-out";
+import GoesOutComesInUnderline from "@/components/ui/underline-goes-out-comes-in";
+import { featuredProjects } from "@/data/projects";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
@@ -51,33 +55,6 @@ const experienceStories = [
     title: "Associate Software Engineer at Accenture",
     copy:
       "Built foundations in incident response, ITIL operations, Azure monitoring, and production issue resolution. This is where the operating discipline started.",
-  },
-];
-
-const featuredProjects = [
-  {
-    title: "Acquisitions API",
-    impact: "Secure backend with JWT auth, Neon PostgreSQL, Drizzle ORM, and role-based access control.",
-    stack: "Express.js / PostgreSQL / Drizzle / JWT / Arcjet",
-    href: "https://github.com/mdsarfarazalam840/acquisitions",
-  },
-  {
-    title: "Space Drive",
-    impact: "Telegram-powered file dashboard with premium frontend motion and streaming-first interaction design.",
-    stack: "Next.js / Tailwind / Framer Motion / Telegram Cloud",
-    href: "https://github.com/mdsarfarazalam840/own-drive",
-  },
-  {
-    title: "Telegram to Google Drive Bot",
-    impact: "High-throughput automation for streaming Telegram files into Google Drive with resumable uploads.",
-    stack: "Python / Pyrogram / Google Drive API / Docker",
-    href: "https://github.com/mdsarfarazalam840/New-Tg-Gd-Bot",
-  },
-  {
-    title: "Trading Migration System",
-    impact: "Enterprise migration platform for workflow movement between ETRM systems with audit visibility.",
-    stack: ".NET Core / React / MongoDB / Swagger",
-    href: "https://github.com/mdsarfarazalam840/Trading-Project-ETRM",
   },
 ];
 
@@ -330,8 +307,15 @@ function App() {
 
     const loadGithub = async () => {
       try {
+        const token = import.meta.env.VITE_GITHUB_TOKEN;
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
         const repoResponse = await fetch(
           `https://api.github.com/users/${githubUsername}/repos?sort=pushed&per_page=6&type=owner`,
+          { headers },
         );
         if (!repoResponse.ok) {
           throw new Error("Failed to load GitHub repos");
@@ -349,7 +333,7 @@ function App() {
           throw new Error("No repos found");
         }
 
-        const commitsResponse = await fetch(`https://api.github.com/repos/${targetRepo.full_name}/commits?per_page=2`);
+        const commitsResponse = await fetch(`https://api.github.com/repos/${targetRepo.full_name}/commits?per_page=2`, { headers });
         if (!commitsResponse.ok) {
           throw new Error("Failed to load latest commit");
         }
@@ -384,16 +368,21 @@ function App() {
           setLatestCommit(commitData);
           setGithubError(false);
         }
-      } catch {
+      } catch (err) {
+        console.warn("GitHub API fetch failed, falling back to snapshot:", err);
+
         try {
           const snapshot = await loadGeneratedSnapshot();
+          const hasValidData = snapshot.github.latestPush || snapshot.github.latestCommit;
 
           if (!cancelled) {
             setLatestPush(snapshot.github.latestPush);
             setLatestCommit(snapshot.github.latestCommit);
-            setGithubError(false);
+            setGithubError(!hasValidData);
           }
-        } catch {
+        } catch (snapErr) {
+          console.error("Snapshot fallback also failed:", snapErr);
+
           if (!cancelled) {
             setLatestPush(null);
             setLatestCommit(null);
@@ -1109,7 +1098,7 @@ function App() {
                 transition={{ duration: 1, delay: item.delay, ease: [0.33, 1, 0.68, 1] }}
               >
                 <div className="live-card__head">
-                  <span>{item.content === "github" ? "Parth's Github" : item.content === "cta" ? "Visitors" : "Last played"}</span>
+                  <span>{item.content === "github" ? "Sarfaraz's Github" : item.content === "cta" ? "Visitors" : "Last played"}</span>
                   <a href={item.content === "spotify" ? spotifyProfileUrl : `https://github.com/${githubUsername}`}>
                     Open {item.content === "github" ? "profile" : item.content === "cta" ? "" : "Spotify"}
                   </a>
@@ -1249,75 +1238,52 @@ function App() {
             transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
           >
             <p className="scene-label">Projects</p>
-            <h2>Few projects. Real impact. No clutter.</h2>
+            <h2>Projects that make a difference.</h2>
           </motion.div>
 
           <div className="project-marquee">
-            <SimpleMarquee
-              className="w-full"
-              baseVelocity={8}
-              repeat={4}
-              slowdownOnHover
-              slowDownFactor={0.2}
-              slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
-              useScrollVelocity
-              scrollAwareDirection
-              scrollSpringConfig={{ damping: 50, stiffness: 400 }}
-              direction="left"
-            >
-              {featuredProjects.slice(0, 2).map((project) => (
-                <a
-                  key={project.title}
-                  href={project.href}
-                  className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
+            {(() => {
+              const ROW_COUNT = 4;
+              const perRow = Math.ceil(featuredProjects.length / ROW_COUNT);
+              const rows = Array.from({ length: ROW_COUNT }, (_, i) =>
+                featuredProjects.slice(i * perRow, (i + 1) * perRow)
+              ).filter(row => row.length > 0);
+              return rows.map((row, i) => (
+                <SimpleMarquee
+                  key={i}
+                  className={`w-full${i > 0 ? " mt-2 sm:mt-3 md:mt-4" : ""}`}
+                  baseVelocity={8}
+                  repeat={4}
+                  slowdownOnHover
+                  slowDownFactor={0.2}
+                  slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
+                  useScrollVelocity
+                  scrollAwareDirection
+                  scrollSpringConfig={{ damping: 50, stiffness: 400 }}
+                  direction={i % 2 === 0 ? "left" : "right"}
                 >
-                  <div className="project-marquee-card">
-                    <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
-                      {project.title}
-                    </h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
-                      {project.impact}
-                    </p>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
-                      {project.stack}
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </SimpleMarquee>
-
-            <SimpleMarquee
-              className="w-full mt-2 sm:mt-3 md:mt-4"
-              baseVelocity={8}
-              repeat={4}
-              slowdownOnHover
-              slowDownFactor={0.2}
-              slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
-              useScrollVelocity
-              scrollAwareDirection
-              scrollSpringConfig={{ damping: 50, stiffness: 400 }}
-              direction="right"
-            >
-              {featuredProjects.slice(2).map((project) => (
-                <a
-                  key={project.title}
-                  href={project.href}
-                  className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
-                >
-                  <div className="project-marquee-card">
-                    <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
-                      {project.title}
-                    </h3>
-                    <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
-                      {project.impact}
-                    </p>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
-                      {project.stack}
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </SimpleMarquee>
+                  {row.map((project) => (
+                    <a
+                      key={project.title}
+                      href={project.href}
+                      className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
+                    >
+                      <div className="project-marquee-card">
+                        <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
+                          {project.title}
+                        </h3>
+                        <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                          {project.impact}
+                        </p>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
+                          {project.stack}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </SimpleMarquee>
+              ));
+            })()}
           </div>
         </motion.section>
 
@@ -1395,21 +1361,59 @@ function App() {
               viewport={{ once: false, amount: 0.5 }}
               transition={{ duration: 1, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
             >
-              {contactLinks.map((item, index) => (
-                <motion.a
-                  download={item.label === "Resume" ? resumeFileName : undefined}
-                  href={item.href}
-                  key={item.label}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: false, amount: 0.5 }}
-                  whileHover={{ x: 5 }}
-                  transition={{ duration: 0.5, delay: 0.2 + index * 0.08 }}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </motion.a>
-              ))}
+              <motion.a
+                href={contactLinks[0].href}
+                key={contactLinks[0].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <CenterUnderline>
+                  <span>{contactLinks[0].label}</span>
+                  <strong>{contactLinks[0].value}</strong>
+                </CenterUnderline>
+              </motion.a>
+              <motion.a
+                href={contactLinks[1].href}
+                key={contactLinks[1].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.28 }}
+              >
+                <ComesInGoesOutUnderline direction="right">
+                  <span>{contactLinks[1].label}</span>
+                  <strong>{contactLinks[1].value}</strong>
+                </ComesInGoesOutUnderline>
+              </motion.a>
+              <motion.a
+                href={contactLinks[2].href}
+                key={contactLinks[2].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.36 }}
+              >
+                <ComesInGoesOutUnderline direction="left">
+                  <span>{contactLinks[2].label}</span>
+                  <strong>{contactLinks[2].value}</strong>
+                </ComesInGoesOutUnderline>
+              </motion.a>
+              <motion.a
+                download={contactLinks[3].label === "Resume" ? resumeFileName : undefined}
+                href={contactLinks[3].href}
+                key={contactLinks[3].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.44 }}
+              >
+                <GoesOutComesInUnderline direction="left">
+                  <span>{contactLinks[3].label}</span>
+                  <strong>{contactLinks[3].value}</strong>
+                </GoesOutComesInUnderline>
+              </motion.a>
             </motion.div>
           </div>
         </motion.section>

@@ -1217,18 +1217,6 @@ button {
 
 .contact-links a {
   padding: var(--spacing-small) 0;
-  border-top: 1px solid var(--border-glass);
-  transition: color 180ms ease, transform 180ms ease, border-color 180ms ease;
-}
-
-.contact-links a:last-child {
-  border-bottom: 1px solid var(--border-glass);
-}
-
-.contact-links a:hover {
-  color: var(--text-primary);
-  transform: translateX(5px);
-  border-color: var(--border-hover);
 }
 
 .contact-links span {

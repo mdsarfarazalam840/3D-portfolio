@@ -4,6 +4,7 @@ import gsap from "gsap";
 import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
 import { NeuralBackground } from "@/components/ui/neural-background";
+import SimpleMarquee from "@/components/ui/simple-marquee";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
@@ -648,7 +649,7 @@ function App() {
       }
     };
 
-    const interactiveSelector = "a, button, input, .project-row, .live-card, .command-item";
+    const interactiveSelector = "a, button, input, .project-marquee-card, .live-card, .command-item";
     const onEnter = () => {
       hoverActive = true;
       gsap.to(cursorCore, { scale: 1.2, duration: 0.18, overwrite: true });
@@ -1251,28 +1252,72 @@ function App() {
             <h2>Few projects. Real impact. No clutter.</h2>
           </motion.div>
 
-          <div className="project-list">
-            {featuredProjects.map((project, index) => (
-              <motion.a
-                className="project-row"
-                href={project.href}
-                key={project.title}
-                initial={{ opacity: 0, y: 42 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, amount: 0.5 }}
-                whileHover={{ x: 6, boxShadow: "0 22px 50px rgba(0, 0, 0, 0.18)" }}
-                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
-              >
-                <div className="project-row__main">
-                  <h3>{project.title}</h3>
-                  <p>{project.impact}</p>
-                </div>
-                <div className="project-row__side">
-                  <span>{project.stack}</span>
-                  <strong>Open repo</strong>
-                </div>
-              </motion.a>
-            ))}
+          <div className="project-marquee">
+            <SimpleMarquee
+              className="w-full"
+              baseVelocity={8}
+              repeat={4}
+              slowdownOnHover
+              slowDownFactor={0.2}
+              slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
+              useScrollVelocity
+              scrollAwareDirection
+              scrollSpringConfig={{ damping: 50, stiffness: 400 }}
+              direction="left"
+            >
+              {featuredProjects.slice(0, 2).map((project) => (
+                <a
+                  key={project.title}
+                  href={project.href}
+                  className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
+                >
+                  <div className="project-marquee-card">
+                    <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
+                      {project.title}
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                      {project.impact}
+                    </p>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
+                      {project.stack}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </SimpleMarquee>
+
+            <SimpleMarquee
+              className="w-full mt-2 sm:mt-3 md:mt-4"
+              baseVelocity={8}
+              repeat={4}
+              slowdownOnHover
+              slowDownFactor={0.2}
+              slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
+              useScrollVelocity
+              scrollAwareDirection
+              scrollSpringConfig={{ damping: 50, stiffness: 400 }}
+              direction="right"
+            >
+              {featuredProjects.slice(2).map((project) => (
+                <a
+                  key={project.title}
+                  href={project.href}
+                  className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
+                >
+                  <div className="project-marquee-card">
+                    <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
+                      {project.title}
+                    </h3>
+                    <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                      {project.impact}
+                    </p>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
+                      {project.stack}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </SimpleMarquee>
           </div>
         </motion.section>
 

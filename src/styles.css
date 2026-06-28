@@ -290,7 +290,6 @@ button {
 .impact-value,
 .scene-heading h2,
 .story-item h3,
-.project-row h3,
 .contact-copy h2 {
   letter-spacing: -0.05em;
 }
@@ -644,7 +643,6 @@ button {
 .hero-summary,
 .impact-item p,
 .story-item p,
-.project-row p,
 .contact-copy p,
 .live-note p {
   color: var(--text-secondary);
@@ -1123,7 +1121,6 @@ button {
 }
 
 .impact-item h2,
-.project-row h3,
 .story-item h3 {
   margin: 0;
   font-size: 1.35rem;
@@ -1131,18 +1128,15 @@ button {
 }
 
 .impact-item p,
-.story-item p,
-.project-row p {
+.story-item p {
   margin: var(--spacing-compact) 0 0;
 }
 
-.story-list,
-.project-list {
+.story-list {
   display: grid;
 }
 
-.story-item,
-.project-row {
+.story-item {
   display: grid;
   grid-template-columns: 160px minmax(0, 1fr);
   gap: var(--spacing-large);
@@ -1150,60 +1144,39 @@ button {
   border-top: 1px solid var(--border-glass);
 }
 
-.story-item:last-child,
-.project-row:last-child {
+.story-item:last-child {
   border-bottom: 1px solid var(--border-glass);
 }
 
-.story-item span,
-.project-row span {
+.story-item span {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
 }
 
-.project-row {
-  align-items: end;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  padding: var(--spacing-notable) var(--spacing-standard);
-  border-radius: var(--radius-lg);
-  background: transparent;
-  transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
+.project-marquee {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--spacing-standard) 0;
+  gap: var(--spacing-small);
 }
 
-.project-row:hover {
-  transform: translateX(6px);
-  border-color: var(--border-hover);
+.project-marquee-card {
   background: rgba(255, 255, 255, 0.03);
-  box-shadow: var(--inset-glow-hover);
-}
-
-.project-row__main {
-  max-width: 32rem;
-}
-
-.project-row__side {
-  display: grid;
-  justify-items: end;
-  gap: var(--spacing-standard);
-}
-
-.project-row__side span,
-.project-row__side strong {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-compact) var(--spacing-small);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-glass);
-  font-size: 12px;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-notable) var(--spacing-standard);
+  transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.project-row__side strong {
-  color: var(--text-primary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
+.project-marquee-card:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: var(--inset-glow-hover);
 }
 
 .capability-cloud {
@@ -1380,14 +1353,9 @@ button {
     height: 280px;
   }
 
-  .story-item,
-  .project-row {
+  .story-item {
     grid-template-columns: 1fr;
     gap: var(--spacing-small);
-  }
-
-  .project-row__side {
-    justify-items: start;
   }
 
   .live-card--github,

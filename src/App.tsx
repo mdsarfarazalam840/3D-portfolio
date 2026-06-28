@@ -3,7 +3,13 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
+import { BackgroundProvider, useBackground } from "@/lib/backgrounds";
+import { BgSwitcher } from "@/components/ui/bg-switcher";
 import { NeuralBackground } from "@/components/ui/neural-background";
+import { AuroraBg } from "@/components/ui/aurora-bg";
+import { ParticleSwarm } from "@/components/ui/particle-swarm";
+import { WaveGrid } from "@/components/ui/wave-grid";
+import { GradientFlow } from "@/components/ui/gradient-flow";
 import SimpleMarquee from "@/components/ui/simple-marquee";
 import CenterUnderline from "@/components/ui/underline-center";
 import ComesInGoesOutUnderline from "@/components/ui/underline-comes-in-goes-out";
@@ -130,6 +136,22 @@ function formatRelativeTime(value: string) {
   const months = Math.floor(days / 30);
   if (months < 12) return `${months}mo ago`;
   return `${Math.floor(months / 12)}y ago`;
+}
+
+function AppBackground() {
+  const { currentBg } = useBackground();
+  switch (currentBg) {
+    case "neural":
+      return <NeuralBackground className="neural-bg" />;
+    case "aurora":
+      return <AuroraBg className="neural-bg" />;
+    case "particle-swarm":
+      return <ParticleSwarm className="neural-bg" />;
+    case "wave-grid":
+      return <WaveGrid className="neural-bg" />;
+    case "gradient-flow":
+      return <GradientFlow className="neural-bg" />;
+  }
 }
 
 function App() {
@@ -789,8 +811,9 @@ function App() {
   }, []);
 
   return (
+    <BackgroundProvider>
     <div className="portfolio-shell" ref={rootRef}>
-      <NeuralBackground className="neural-bg" />
+      <AppBackground />
       <canvas className="particle-canvas" ref={particleCanvasRef} />
       <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
@@ -817,6 +840,7 @@ function App() {
         </nav>
 
         <div className="header-actions">
+          <BgSwitcher />
           <button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
@@ -1451,6 +1475,7 @@ function App() {
         </motion.section>
       </main>
     </div>
+    </BackgroundProvider>
   );
 }
 

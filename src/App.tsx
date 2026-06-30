@@ -169,6 +169,8 @@ function App() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
+  const lastScrollY = useRef(0);
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
@@ -556,7 +558,16 @@ function App() {
   }, [menuOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 80);
+      if (currentY > 80) {
+        setNavHidden(currentY > lastScrollY.current);
+      } else {
+        setNavHidden(false);
+      }
+      lastScrollY.current = currentY;
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -845,7 +856,11 @@ function App() {
       <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
 
-      <header className={`site-header${scrolled ? " site-header--scrolled" : ""}`}>
+      <motion.header
+        className={`site-header${scrolled ? " site-header--scrolled" : ""}`}
+        animate={{ y: navHidden ? "-100%" : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <a className="site-mark" href="#top">
           <span>MS</span>
           <div>
@@ -939,7 +954,7 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+      </motion.header>
 
       <AnimatePresence>
         {commandOpen && (

@@ -134,9 +134,10 @@ function SceneContent() {
   const reducedMotion = useReducedMotion();
   const theme = useBackgroundTheme();
   const { size, pointer } = useThree();
-  const isCompact = size.width < 960;
-  const sceneOffsetX = isCompact ? 1.15 : 4.6;
-  const sceneScale = isCompact ? 0.74 : 1;
+  const isMedium = size.width >= 720 && size.width < 960;
+  const isCompact = size.width < 720;
+  const sceneOffsetX = isCompact ? 1.15 : isMedium ? 2.8 : 4.6;
+  const sceneScale = isCompact ? 0.74 : isMedium ? 0.85 : 1;
 
   const currentPointer = useRef<Vector3>(new Vector3(0, 0, 0));
   const targetPointer = useRef<Vector3>(new Vector3(0, 0, 0));

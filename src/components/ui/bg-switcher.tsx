@@ -1,21 +1,35 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { backgrounds, type BackgroundId, useBackground } from "@/lib/backgrounds";
 
 export function BgSwitcher() {
   const { currentBg, setBg } = useBackground();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
 
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+    const handlePointer = (e: PointerEvent) => {
+      const target = e.target as Node;
+      const inWrapper = wrapperRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inWrapper && !inDropdown) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("pointerdown", handlePointer);
+    return () => document.removeEventListener("pointerdown", handlePointer);
   }, []);
+
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+    }
+  }, [open]);
 
   const handleSelect = (id: BackgroundId) => {
     setBg(id);
@@ -23,8 +37,9 @@ export function BgSwitcher() {
   };
 
   return (
-    <div className="bg-switcher" ref={ref}>
+    <div className="bg-switcher" ref={wrapperRef}>
       <button
+        ref={triggerRef}
         className="bg-switcher__trigger"
         onClick={() => setOpen((v) => !v)}
         aria-label="Switch background"
@@ -36,8 +51,12 @@ export function BgSwitcher() {
         </span>
       </button>
 
-      {open && (
-        <div className="bg-switcher__dropdown">
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          className="bg-switcher__dropdown bg-switcher__dropdown--portaled"
+          ref={dropdownRef}
+          style={window.innerWidth > 720 ? { top: pos.top, right: pos.right } : undefined}
+        >
           {backgrounds.map((bg) => (
             <button
               key={bg.id}
@@ -53,7 +72,8 @@ export function BgSwitcher() {
               {bg.id === currentBg && <span className="bg-switcher__check">✓</span>}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

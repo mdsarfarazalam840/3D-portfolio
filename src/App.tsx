@@ -167,6 +167,8 @@ function App() {
   const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
   const [githubError, setGithubError] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
@@ -541,6 +543,26 @@ function App() {
   }, [activeCommandIndex, commandOpen, flatCommandItems]);
 
   useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
     const lenis = new Lenis({
       duration: 1.15,
       smoothWheel: true,
@@ -823,7 +845,7 @@ function App() {
       <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
 
-      <header className="site-header">
+      <header className={`site-header${scrolled ? " site-header--scrolled" : ""}`}>
         <a className="site-mark" href="#top">
           <span>MS</span>
           <div>
@@ -841,104 +863,174 @@ function App() {
 
         <div className="header-actions">
           <BgSwitcher />
-          <button
+          <motion.button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
             aria-label="Open command palette"
             className="command-trigger"
             onClick={() => setCommandOpen(true)}
             type="button"
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             <span className="command-trigger__icon" aria-hidden="true">
               /
             </span>
             <span className="command-trigger__hint">Shift K</span>
-          </button>
+          </motion.button>
 
           <a className="resume-link" download={resumeFileName} href={resumePdf}>
             Resume
           </a>
+
+          <button
+            aria-controls="mobile-menu"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className={`menu-toggle${menuOpen ? " menu-toggle--active" : ""}`}
+            onClick={() => setMenuOpen((prev) => !prev)}
+            type="button"
+          >
+            <span className="menu-toggle__bar" />
+            <span className="menu-toggle__bar" />
+            <span className="menu-toggle__bar" />
+          </button>
         </div>
+
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              className="mobile-menu"
+              id="mobile-menu"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <nav className="mobile-menu__nav" aria-label="Primary">
+                <button
+                  onClick={() => { scrollToSelector("#story"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Story
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#work"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Work
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#capabilities"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Capabilities
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#contact"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Contact
+                </button>
+              </nav>
+              <a className="mobile-menu__resume" download={resumeFileName} href={resumePdf}>
+                Resume
+              </a>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      <div
-        aria-hidden={!commandOpen}
-        className={`command-overlay${commandOpen ? " command-overlay--open" : ""}`}
-        onClick={() => {
-          setCommandOpen(false);
-          setCommandQuery("");
-        }}
-      >
-        <section
-          aria-label="Command palette"
-          className="command-palette"
-          id="command-palette"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="command-palette__halo" aria-hidden="true" />
-          <div className="command-palette__input-shell">
-            <span className="command-palette__search-icon" aria-hidden="true">
-              Search
-            </span>
-            <input
-              onChange={(event) => {
-                setCommandQuery(event.target.value);
-                setActiveCommandIndex(0);
-              }}
-              placeholder="Type command or search signal..."
-              ref={commandInputRef}
-              type="text"
-              value={commandQuery}
-            />
-            <span className="command-palette__esc">ESC</span>
-          </div>
-
-          <div className="command-results" ref={commandResultsRef} role="listbox">
-            {commandGroups.length > 0 ? (
-              commandGroups.map((group) => (
-                <div className="command-group" key={group.group}>
-                  <div className="command-group__label">{group.group}</div>
-                  <div className="command-group__items">
-                    {group.items.map((item) => {
-                      const itemIndex = flatCommandItems.findIndex((entry) => entry.id === item.id);
-
-                      return (
-                        <button
-                          className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
-                          key={item.id}
-                          onClick={() => {
-                            const action = item.action;
-                            setCommandOpen(false);
-                            setCommandQuery("");
-                            requestAnimationFrame(() => {
-                              action();
-                            });
-                          }}
-                          onMouseEnter={() => setActiveCommandIndex(itemIndex)}
-                          type="button"
-                        >
-                          <span className="command-item__glyph" aria-hidden="true">
-                            {item.group.slice(0, 1)}
-                          </span>
-                          <span className="command-item__copy">
-                            <strong>{item.title}</strong>
-                            <small>{item.description}</small>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="command-empty">
-                <strong>No signal found.</strong>
-                <small>Try project, resume, GitHub, Azure, work.</small>
+      <AnimatePresence>
+        {commandOpen && (
+          <motion.div
+            aria-hidden={false}
+            className="command-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={() => {
+              setCommandOpen(false);
+              setCommandQuery("");
+            }}
+          >
+            <motion.section
+              aria-label="Command palette"
+              className="command-palette"
+              id="command-palette"
+              initial={{ opacity: 0, y: -10, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.97 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="command-palette__halo" aria-hidden="true" />
+              <div className="command-palette__input-shell">
+                <span className="command-palette__search-icon" aria-hidden="true">
+                  Search
+                </span>
+                <input
+                  onChange={(event) => {
+                    setCommandQuery(event.target.value);
+                    setActiveCommandIndex(0);
+                  }}
+                  placeholder="Type command or search signal..."
+                  ref={commandInputRef}
+                  type="text"
+                  value={commandQuery}
+                />
+                <span className="command-palette__esc">ESC</span>
               </div>
-            )}
-          </div>
-        </section>
-      </div>
+
+              <div className="command-results" ref={commandResultsRef} role="listbox">
+                {commandGroups.length > 0 ? (
+                  commandGroups.map((group) => (
+                    <div className="command-group" key={group.group}>
+                      <div className="command-group__label">{group.group}</div>
+                      <div className="command-group__items">
+                        {group.items.map((item) => {
+                          const itemIndex = flatCommandItems.findIndex((entry) => entry.id === item.id);
+
+                          return (
+                            <button
+                              className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
+                              key={item.id}
+                              onClick={() => {
+                                const action = item.action;
+                                setCommandOpen(false);
+                                setCommandQuery("");
+                                requestAnimationFrame(() => {
+                                  action();
+                                });
+                              }}
+                              onMouseEnter={() => setActiveCommandIndex(itemIndex)}
+                              type="button"
+                            >
+                              <span className="command-item__glyph" aria-hidden="true">
+                                {item.group.slice(0, 1)}
+                              </span>
+                              <span className="command-item__copy">
+                                <strong>{item.title}</strong>
+                                <small>{item.description}</small>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="command-empty">
+                    <strong>No signal found.</strong>
+                    <small>Try project, resume, GitHub, Azure, work.</small>
+                  </div>
+                )}
+              </div>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="portfolio-main" id="top">
         <motion.section

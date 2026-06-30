@@ -5,11 +5,11 @@ import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
 import { BackgroundProvider, useBackground } from "@/lib/backgrounds";
 import { BgSwitcher } from "@/components/ui/bg-switcher";
-import { NeuralBackground } from "@/components/ui/neural-background";
-import { AuroraBg } from "@/components/ui/aurora-bg";
-import { ParticleSwarm } from "@/components/ui/particle-swarm";
-import { WaveGrid } from "@/components/ui/wave-grid";
-import { GradientFlow } from "@/components/ui/gradient-flow";
+const NeuralBackground = lazy(() => import("@/components/ui/neural-background").then(m => ({ default: m.NeuralBackground })));
+const AuroraBg = lazy(() => import("@/components/ui/aurora-bg").then(m => ({ default: m.AuroraBg })));
+const ParticleSwarm = lazy(() => import("@/components/ui/particle-swarm").then(m => ({ default: m.ParticleSwarm })));
+const WaveGrid = lazy(() => import("@/components/ui/wave-grid").then(m => ({ default: m.WaveGrid })));
+const GradientFlow = lazy(() => import("@/components/ui/gradient-flow").then(m => ({ default: m.GradientFlow })));
 import SimpleMarquee from "@/components/ui/simple-marquee";
 import CenterUnderline from "@/components/ui/underline-center";
 import ComesInGoesOutUnderline from "@/components/ui/underline-comes-in-goes-out";
@@ -20,6 +20,7 @@ const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
 const resumeFileName = "Md-Sarfaraz-Alam-Resume.pdf";
 const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
+const profileImageWebp = new URL("../public/IMG_5287.webp", import.meta.url).href;
 const githubUsername = "mdsarfarazalam840";
 const spotifyWidgetUrl =
   "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true";
@@ -846,7 +847,7 @@ function App() {
   return (
     <BackgroundProvider>
     <div className="portfolio-shell" ref={rootRef}>
-      <AppBackground />
+      <Suspense fallback={null}><AppBackground /></Suspense>
       <canvas className="particle-canvas" ref={particleCanvasRef} />
       <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
@@ -1140,7 +1141,11 @@ function App() {
                   transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                 />
                 <div className="portrait-core">
-                  <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
+                  <picture>
+                    <source media="(max-width: 768px)" srcSet={profileImageWebp} type="image/webp" />
+                    <source media="(min-width: 769px)" srcSet={profileImage} type="image/png" />
+                    <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
+                  </picture>
                 </div>
               </motion.div>
 

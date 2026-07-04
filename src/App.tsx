@@ -22,8 +22,6 @@ const resumeFileName = "Md-Sarfaraz-Alam-Resume.pdf";
 const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
 const profileImageWebp = new URL("../public/IMG_5287.webp", import.meta.url).href;
 const githubUsername = "mdsarfarazalam840";
-const spotifyWidgetUrl =
-  "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true";
 const spotifyProfileUrl = "https://open.spotify.com/user/oj1xerhb9fby7dckdhp0yw3no";
 
 const heroLines = [
@@ -50,28 +48,65 @@ const signalPoints = [
   },
 ];
 
-const experienceStories = [
+interface Experience {
+  period: string;
+  title: string;
+  subtitle: string;
+  bullets: string[];
+  stack: string;
+}
+
+const experienceStories: Experience[] = [
   {
-    period: "Now",
-    title: "Senior Software Engineer at Accenture, supporting Shell",
-    copy:
-      "Own reliability work across enterprise Azure estates. I reduce MTTR, harden AKS workloads, improve Dynatrace visibility, and build CI/CD rails that remove manual risk from releases.",
+    period: "June 2026 – Present",
+    title: "Senior Software Engineer",
+    subtitle: "Accenture · Client: Shell",
+    bullets: [
+      "Reduced P1/P2 MTTR by 40% through deep RCA, reliability engineering, and permanent corrective actions.",
+      "Architected CI/CD pipelines with GitHub Actions and Azure DevOps, enabling secure, zero-touch deployments.",
+      "Implemented enterprise Dynatrace observability with OneAgent and custom dashboards for proactive anomaly detection.",
+      "Led a 5-member engineering team, improving incident response, production stability, and operational practices.",
+      "Improved production reliability through automation, monitoring, and infrastructure optimization.",
+    ],
+    stack: "Azure · AKS · Kubernetes · Docker · GitHub Actions · Azure DevOps · Dynatrace · Terraform · PowerShell · Bash · Git",
   },
   {
-    period: "Earlier",
-    title: "Associate Software Engineer at Accenture",
-    copy:
-      "Built foundations in incident response, ITIL operations, Azure monitoring, and production issue resolution. This is where the operating discipline started.",
+    period: "March 2023 – May 2026",
+    title: "Software Engineer",
+    subtitle: "Accenture",
+    bullets: [
+      "Delivered L2/L3 support for 10+ enterprise cloud apps, ensuring high availability and rapid incident recovery.",
+      "Reduced Azure cloud costs by 20% through resource optimization, autoscaling, and intelligent database scaling.",
+      "Improved AKS workload stability with readiness/liveness probes, resource tuning, and Horizontal Pod Autoscaling.",
+      "Built an internal React monitoring dashboard for real-time trade flow and batch execution visibility.",
+      "Automated archival workflows using Azure Data Factory, reducing data processing time by 35%.",
+      "Enhanced deployment velocity by introducing automation and DevOps best practices.",
+    ],
+    stack: "Azure · AKS · Kubernetes · React · Azure Data Factory · SQL Server · Git · Azure DevOps · Docker",
+  },
+  {
+    period: "October 2021 – February 2023",
+    title: "Associate Software Engineer",
+    subtitle: "Accenture",
+    bullets: [
+      "Built proactive monitoring using Azure Monitor, Log Analytics, and KQL for faster issue detection.",
+      "Supported Incident, Problem, and Change Management within ITIL-based production environments.",
+      "Accelerated release cycles by integrating Azure DevOps and GitHub-based CI/CD pipelines.",
+      "Collaborated cross-functionally to troubleshoot production issues and improve platform stability.",
+    ],
+    stack: "Azure Monitor · Log Analytics · KQL · Azure DevOps · GitHub Actions · SQL · ITIL",
   },
 ];
 
 const capabilityGroups = [
   "Azure",
   "AKS",
+  "Kubernetes",
   "Dynatrace",
   "CI/CD",
   "GitHub Actions",
   "Azure DevOps",
+  "Terraform",
   "Incident Response",
   "Observability",
   "Platform Reliability",
@@ -80,6 +115,10 @@ const capabilityGroups = [
   "Docker",
   "KQL",
   "Azure Data Factory",
+  "PowerShell",
+  "Bash",
+  "ITIL",
+  "SQL",
 ];
 
 const contactLinks = [
@@ -108,6 +147,14 @@ type GeneratedLiveData = {
     widgetUrl: string;
     profileUrl: string;
   };
+};
+
+type SpotifyTrack = {
+  title: string;
+  artist: string;
+  albumArt: string;
+  playedAt: string;
+  url: string;
 };
 
 type PaletteItem = {
@@ -155,6 +202,20 @@ function AppBackground() {
   }
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return isMobile;
+}
+
 function App() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -167,6 +228,9 @@ function App() {
   const [latestPush, setLatestPush] = useState<GithubActivity | null>(null);
   const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
   const [githubError, setGithubError] = useState(false);
+  const [spotifyTracks, setSpotifyTracks] = useState<SpotifyTrack[]>([]);
+  const [spotifyNowPlaying, setSpotifyNowPlaying] = useState<SpotifyTrack | null>(null);
+  const [spotifyError, setSpotifyError] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -175,6 +239,7 @@ function App() {
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
+  const isMobile = useIsMobile();
 
   const calendarTheme = useMemo(
     () => ({
@@ -419,15 +484,41 @@ function App() {
       }
     };
 
+    const loadSpotify = async () => {
+      try {
+        const endpoint = import.meta.env.VITE_SPOTIFY_NOW_PLAYING_URL?.trim();
+        if (!endpoint) return;
+
+        const res = await fetch(endpoint, { cache: "no-store" });
+        if (!res.ok) throw new Error("Spotify fetch failed");
+
+        const data = (await res.json()) as { tracks: SpotifyTrack[]; nowPlaying: SpotifyTrack | null };
+        if (!cancelled) {
+          setSpotifyTracks(data.tracks);
+          setSpotifyNowPlaying(data.nowPlaying);
+          setSpotifyError(false);
+        }
+      } catch (err) {
+        console.warn("Spotify fetch failed:", err);
+        if (!cancelled) setSpotifyError(true);
+      }
+    };
+
     void loadGithub();
+    void loadSpotify();
 
     const intervalId = window.setInterval(() => {
       void loadGithub();
     }, 60000);
 
+    const spotifyInterval = window.setInterval(() => {
+      void loadSpotify();
+    }, 60000);
+
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      window.clearInterval(spotifyInterval);
     };
   }, []);
 
@@ -593,6 +684,34 @@ function App() {
       lenisRef.current = null;
       window.cancelAnimationFrame(frameId);
       lenis.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let lastX = window.innerWidth / 2;
+    let lastY = window.innerHeight / 2;
+    let lastTime = performance.now();
+
+    const onPointerMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = "touches" in e ? e.touches[0]?.clientX ?? lastX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0]?.clientY ?? lastY : e.clientY;
+      const now = performance.now();
+      const dt = Math.max(now - lastTime, 16);
+      const speed = Math.min(Math.hypot(clientX - lastX, clientY - lastY) / dt, 1.5);
+      lastX = clientX;
+      lastY = clientY;
+      lastTime = now;
+      root.style.setProperty("--pointer-x", `${clientX}px`);
+      root.style.setProperty("--pointer-y", `${clientY}px`);
+      root.style.setProperty("--pointer-speed", `${speed.toFixed(3)}`);
+    };
+
+    window.addEventListener("mousemove", onPointerMove);
+    window.addEventListener("touchmove", onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onPointerMove);
+      window.removeEventListener("touchmove", onPointerMove);
     };
   }, []);
 
@@ -847,7 +966,8 @@ function App() {
   return (
     <BackgroundProvider>
     <div className="portfolio-shell" ref={rootRef}>
-      <Suspense fallback={null}><AppBackground /></Suspense>
+      {!isMobile && <Suspense fallback={null}><AppBackground /></Suspense>}
+      {isMobile && <div className="liquid-field" aria-hidden="true" />}
       <canvas className="particle-canvas" ref={particleCanvasRef} />
       <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
@@ -859,8 +979,8 @@ function App() {
 
       <motion.header
         className={`site-header${scrolled ? " site-header--scrolled" : ""}`}
-        animate={{ y: navHidden ? "-100%" : 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        animate={!isMobile ? { y: navHidden ? "-100%" : 0 } : undefined}
+        transition={!isMobile ? { type: "spring", stiffness: 300, damping: 30 } : undefined}
       >
         <a className="site-mark" href="#top">
           <span>MS</span>
@@ -878,7 +998,7 @@ function App() {
         </nav>
 
         <div className="header-actions">
-          <BgSwitcher />
+          {!isMobile && <BgSwitcher />}
           <motion.button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
@@ -1298,9 +1418,8 @@ function App() {
                 )}
 
                 {item.content === "spotify" && (
-                  <motion.a
+                  <motion.div
                     className="spotify-widget spotify-widget--futuristic"
-                    href={spotifyProfileUrl}
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.18 }}
                   >
@@ -1308,10 +1427,58 @@ function App() {
                     <span className="spotify-widget__grid" aria-hidden="true" />
                     <span className="spotify-widget__orbit" aria-hidden="true" />
                     <div className="spotify-widget__chrome">
-                      <span className="spotify-pill">Live audio signal</span>
+                      <span className="spotify-pill">
+                        {spotifyNowPlaying ? "Now playing" : "Live audio signal"}
+                      </span>
                     </div>
-                    <img alt="Spotify recently played widget" src={spotifyWidgetUrl} />
-                  </motion.a>
+                    <div className="spotify-tracklist">
+                      {spotifyNowPlaying && (
+                        <a
+                          className="spotify-entry spotify-entry--now"
+                          href={spotifyNowPlaying.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {spotifyNowPlaying.albumArt ? (
+                            <img src={spotifyNowPlaying.albumArt} alt="" loading="lazy" />
+                          ) : (
+                            <span className="album-fallback">♫</span>
+                          )}
+                          <div>
+                            <strong>{spotifyNowPlaying.title}</strong>
+                            <small>{spotifyNowPlaying.artist}</small>
+                            <p>Now playing</p>
+                          </div>
+                        </a>
+                      )}
+                      {spotifyError ? (
+                        <div className="live-empty">Spotify data unavailable.</div>
+                      ) : spotifyTracks.length === 0 && !spotifyNowPlaying ? (
+                        <div className="live-empty">No recently played tracks.</div>
+                      ) : (
+                        spotifyTracks.slice(0, 5).map((track, i) => (
+                          <a
+                            key={`${track.url}-${i}`}
+                            className="spotify-entry"
+                            href={track.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {track.albumArt ? (
+                              <img src={track.albumArt} alt="" loading="lazy" />
+                            ) : (
+                              <span className="album-fallback">♫</span>
+                            )}
+                            <div>
+                              <strong>{track.title}</strong>
+                              <small>{track.artist}</small>
+                              <p>{formatRelativeTime(track.playedAt)}</p>
+                            </div>
+                          </a>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
                 )}
               </motion.article>
             ))}
@@ -1351,7 +1518,13 @@ function App() {
                 <span>{story.period}</span>
                 <div>
                   <h3>{story.title}</h3>
-                  <p>{story.copy}</p>
+                  <p className="story-subtitle">{story.subtitle}</p>
+                  <ul className="story-bullets">
+                    {story.bullets.map((b, i) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                  <p className="story-stack">{story.stack}</p>
                 </div>
               </motion.article>
             ))}

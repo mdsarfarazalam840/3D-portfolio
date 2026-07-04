@@ -1195,32 +1195,6 @@ button {
   line-height: 1.7;
 }
 
-.spotify-entry {
-  grid-template-columns: 60px minmax(0, 1fr);
-  align-items: center;
-  gap: var(--spacing-standard);
-}
-
-.spotify-entry img,
-.album-fallback {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-sm);
-}
-
-.album-fallback {
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-primary);
-  letter-spacing: 0.08em;
-}
-
-.spotify-entry p {
-  margin: var(--spacing-micro) 0 var(--spacing-compact);
-  color: var(--text-secondary);
-}
-
 .spotify-widget {
   display: block;
   position: relative;
@@ -1234,15 +1208,10 @@ button {
   transform: translateY(-4px);
 }
 
-.spotify-widget img {
-  width: 100%;
-  height: auto;
-}
-
 .spotify-widget--futuristic {
   min-height: 23.5rem;
   display: grid;
-  align-items: center;
+  grid-template-rows: auto 1fr;
   border: 1px solid var(--border-glass);
   background: var(--bg-secondary);
   box-shadow: var(--inset-glow);
@@ -1251,16 +1220,6 @@ button {
 .spotify-widget--futuristic:hover {
   transform: translateY(-4px);
   box-shadow: var(--inset-glow-hover);
-}
-
-.spotify-widget--futuristic img {
-  position: relative;
-  z-index: 2;
-  border-radius: var(--radius-md);
-  margin: var(--spacing-xxl) auto 0;
-  width: calc(100% - var(--spacing-xxl));
-  max-width: 30rem;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
 }
 
 .spotify-widget__glow,
@@ -1323,6 +1282,92 @@ button {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.spotify-tracklist {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--spacing-micro);
+  padding: var(--spacing-compact);
+  padding-top: 3.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.spotify-tracklist::-webkit-scrollbar {
+  width: 4px;
+}
+
+.spotify-tracklist::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.spotify-entry {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-standard);
+  padding: var(--spacing-compact);
+  border-radius: var(--radius-sm);
+  transition: background 180ms ease, transform 180ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.spotify-entry:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.spotify-entry--now {
+  background: rgba(29, 185, 84, 0.06);
+  border: 1px solid rgba(29, 185, 84, 0.12);
+  margin-bottom: var(--spacing-compact);
+}
+
+.spotify-entry img,
+.album-fallback {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.album-fallback {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+}
+
+.spotify-entry strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.spotify-entry small {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotify-entry p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .signature-card {

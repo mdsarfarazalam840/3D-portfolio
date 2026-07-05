@@ -1009,8 +1009,8 @@ function App() {
 
       <motion.header
         className={`site-header${scrolled ? " site-header--scrolled" : ""}`}
-        animate={!isMobile ? { y: navHidden ? "-100%" : 0 } : undefined}
-        transition={!isMobile ? { type: "spring", stiffness: 300, damping: 30 } : undefined}
+        animate={{ y: navHidden ? "-100%" : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <a className="site-mark" href="#top">
           <span>MS</span>

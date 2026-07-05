@@ -1,4 +1,6 @@
 import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { KineticTypographyLoader } from "@/components/ui/loading-animation";
+import UniqueLoading from "@/components/ui/morph-loading";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import Lenis from "lenis";
@@ -240,6 +242,12 @@ function App() {
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
   const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 10500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const calendarTheme = useMemo(
     () => ({
@@ -716,6 +724,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isLoading) return;
     const body = document.body;
     const root = document.documentElement;
     const cursor = cursorRef.current;
@@ -961,12 +970,33 @@ function App() {
       document.removeEventListener("mouseleave", hideCursor);
       window.cancelAnimationFrame(frameId);
     };
-  }, []);
+  }, [isLoading]);
 
   return (
     <BackgroundProvider>
-    <div className="portfolio-shell" ref={rootRef}>
-      {!isMobile && <Suspense fallback={null}><AppBackground /></Suspense>}
+    <AnimatePresence>
+      {isLoading ? (
+        <motion.div
+          key="loader"
+          className="fixed inset-0 flex items-center justify-center bg-black"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+          <div className="flex flex-col items-center gap-12">
+            <UniqueLoading variant="morph" size="lg" />
+            <KineticTypographyLoader />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="portfolio"
+          className="portfolio-shell"
+          ref={rootRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+      <Suspense fallback={null}><AppBackground /></Suspense>
       {isMobile && <div className="liquid-field" aria-hidden="true" />}
       <canvas className="particle-canvas" ref={particleCanvasRef} />
       <div className="cursor-ring" ref={cursorRef}>
@@ -998,7 +1028,7 @@ function App() {
         </nav>
 
         <div className="header-actions">
-          {!isMobile && <BgSwitcher />}
+          <BgSwitcher />
           <motion.button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
@@ -1759,7 +1789,9 @@ function App() {
           </div>
         </motion.section>
       </main>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
     </BackgroundProvider>
   );
 }

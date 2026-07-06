@@ -21,7 +21,8 @@ export function WaveGrid({ className }: { className?: string }) {
     const baseZ: number[][] = [];
 
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
+      const isMobile = window.innerWidth < 768;
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 3);
       W = window.innerWidth;
       H = window.innerHeight;
       canvas!.width = W * dpr;

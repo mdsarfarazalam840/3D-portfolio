@@ -26,7 +26,8 @@ export function ParticleSwarm({ className }: { className?: string }) {
     let W: number, H: number;
 
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
+      const isMobile = window.innerWidth < 768;
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 3);
       W = window.innerWidth;
       H = window.innerHeight;
       canvas!.width = W * dpr;
@@ -37,7 +38,8 @@ export function ParticleSwarm({ className }: { className?: string }) {
     }
 
     function initParticles() {
-      const count = Math.min(Math.floor((W * H) / 12000), 130);
+      const isMobile = W < 768;
+      const count = Math.min(Math.floor((W * H) / (isMobile ? 24000 : 12000)), isMobile ? 65 : 130);
       particlesRef.current = Array.from({ length: count }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,

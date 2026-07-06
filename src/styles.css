@@ -1860,6 +1860,17 @@ button {
     line-height: 44px;
     font-size: 13px;
   }
+
+  .impact-scene,
+  .live-scene,
+  .narrative-scene,
+  .projects-scene,
+  .capabilities-scene,
+  .contact-scene,
+  .github-graph-scene {
+    content-visibility: auto;
+    contain-intrinsic-size: 800px;
+  }
 }
 
 @media (max-width: 720px) {

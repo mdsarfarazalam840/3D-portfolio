@@ -49,7 +49,8 @@ export function NeuralBackground({ className }: { className?: string }) {
   };
 
   const createNodes = useCallback((width: number, height: number) => {
-    const nodeCount = Math.min(Math.floor((width * height) / 15000), 60);
+    const isMobile = width < 768;
+    const nodeCount = Math.min(Math.floor((width * height) / (isMobile ? 30000 : 15000)), isMobile ? 30 : 60);
     nodesRef.current = Array.from({ length: nodeCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -187,7 +188,8 @@ export function NeuralBackground({ className }: { className?: string }) {
     if (!ctx) return;
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const isMobile = window.innerWidth < 768;
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 3);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = `${window.innerWidth}px`;

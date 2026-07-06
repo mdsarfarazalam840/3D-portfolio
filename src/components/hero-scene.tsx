@@ -111,11 +111,13 @@ type SatelliteProps = {
   scale?: number;
   speed: number;
   reducedMotion: boolean;
+  paused: boolean;
 };
 
-function SatelliteNode({ position, color, scale = 1, speed, reducedMotion }: SatelliteProps) {
+function SatelliteNode({ position, color, scale = 1, speed, reducedMotion, paused }: SatelliteProps) {
+  const stopped = reducedMotion || paused;
   return (
-    <Float speed={reducedMotion ? 0 : speed} rotationIntensity={reducedMotion ? 0 : 1.1} floatIntensity={reducedMotion ? 0 : 1.1}>
+    <Float speed={stopped ? 0 : speed} rotationIntensity={stopped ? 0 : 1.1} floatIntensity={stopped ? 0 : 1.1}>
       <group position={position} scale={scale}>
         <mesh>
           <octahedronGeometry args={[0.22, 0]} />
@@ -130,12 +132,13 @@ function SatelliteNode({ position, color, scale = 1, speed, reducedMotion }: Sat
   );
 }
 
-function SceneContent() {
+function SceneContent({ paused = false }: { paused?: boolean }) {
   const reducedMotion = useReducedMotion();
   const theme = useBackgroundTheme();
   const { size, pointer } = useThree();
   const isMedium = size.width >= 720 && size.width < 960;
   const isCompact = size.width < 720;
+  const mobileReduced = isCompact && !reducedMotion;
   const sceneOffsetX = isCompact ? 1.15 : isMedium ? 2.8 : 4.6;
   const sceneScale = isCompact ? 0.74 : isMedium ? 0.85 : 1;
 
@@ -169,6 +172,7 @@ function SceneContent() {
   }, [pointer]);
 
   useFrame((state) => {
+    if (paused) return;
     const elapsed = state.clock.getElapsedTime();
     const root = state.scene.getObjectByName("scene-root") as Group | null;
     const inner = state.scene.getObjectByName("inner-gimbal") as Group | null;
@@ -207,11 +211,11 @@ function SceneContent() {
       <pointLight color={theme.secondary} intensity={20} position={[sceneOffsetX - 2.8, -1.7, 3.2]} />
       <PerspectiveCamera makeDefault position={[0, 1.1, 11.2]} fov={36} />
 
-      <Stars radius={90} depth={46} count={reducedMotion ? 800 : 1600} factor={4} fade speed={reducedMotion ? 0 : 0.35} />
+      <Stars radius={90} depth={46} count={reducedMotion ? 800 : mobileReduced ? 600 : 1600} factor={4} fade speed={reducedMotion || paused ? 0 : 0.35} />
       <Sparkles
-        count={reducedMotion ? 40 : 150}
+        count={reducedMotion ? 40 : mobileReduced ? 30 : 150}
         size={4}
-        speed={reducedMotion ? 0 : 0.35}
+        speed={reducedMotion || paused ? 0 : 0.35}
         opacity={0.7}
         scale={[20, 12, 16]}
         color={theme.primary}
@@ -241,10 +245,10 @@ function SceneContent() {
         </group>
 
         <group name="satellite-ring">
-          <SatelliteNode position={[3.4, 1.7, -1.8]} color={theme.primary} speed={1.4} reducedMotion={reducedMotion} />
-          <SatelliteNode position={[-3, 1.2, -2.2]} color={theme.secondary} speed={1.2} reducedMotion={reducedMotion} />
-          <SatelliteNode position={[1.2, -2.1, 1.1]} color={theme.accent} scale={0.9} speed={1.6} reducedMotion={reducedMotion} />
-          <SatelliteNode position={[-1.7, 2.7, 0.6]} color={theme.primary} scale={0.82} speed={1.3} reducedMotion={reducedMotion} />
+          <SatelliteNode position={[3.4, 1.7, -1.8]} color={theme.primary} speed={1.4} reducedMotion={reducedMotion} paused={paused} />
+          <SatelliteNode position={[-3, 1.2, -2.2]} color={theme.secondary} speed={1.2} reducedMotion={reducedMotion} paused={paused} />
+          <SatelliteNode position={[1.2, -2.1, 1.1]} color={theme.accent} scale={0.9} speed={1.6} reducedMotion={reducedMotion} paused={paused} />
+          <SatelliteNode position={[-1.7, 2.7, 0.6]} color={theme.primary} scale={0.82} speed={1.3} reducedMotion={reducedMotion} paused={paused} />
         </group>
 
         <group name="inner-gimbal">
@@ -256,7 +260,7 @@ function SceneContent() {
               emissiveIntensity={1.9}
               metalness={0.72}
               roughness={0.14}
-              speed={reducedMotion ? 0 : 1.5}
+              speed={reducedMotion || paused ? 0 : 1.5}
               distort={reducedMotion ? 0.08 : 0.2}
             />
           </mesh>
@@ -281,10 +285,23 @@ function SceneContent() {
   );
 }
 
-export default function HeroScene() {
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
+
+export default function HeroScene({ paused = false }: { paused?: boolean }) {
+  const isMobile = useIsMobile();
   return (
-    <Canvas dpr={[1, 1.8]} gl={{ antialias: true }}>
-      <SceneContent />
+    <Canvas dpr={[1, isMobile ? 1.3 : 1.8]} gl={{ antialias: true }}>
+      <SceneContent paused={paused} />
     </Canvas>
   );
 }

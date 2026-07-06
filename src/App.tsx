@@ -1,4 +1,6 @@
-import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { KineticTypographyLoader } from "@/components/ui/loading-animation";
+import UniqueLoading from "@/components/ui/morph-loading";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import Lenis from "lenis";
@@ -216,6 +218,32 @@ function useIsMobile() {
   return isMobile;
 }
 
+function LazyHeroScene() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(entry.isIntersecting);
+      },
+      { threshold: 0, rootMargin: "600px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} style={{ width: "100%", height: "100%" }}>
+      <Suspense fallback={<div className="hero-canvas__fallback" />}>
+        <HeroScene paused={!visible} />
+      </Suspense>
+    </div>
+  );
+}
+
 function App() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -240,6 +268,12 @@ function App() {
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
   const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 10500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const calendarTheme = useMemo(
     () => ({
@@ -261,15 +295,17 @@ function App() {
 
   const scrollToSelector = (selector: string) => {
     const target = document.querySelector<HTMLElement>(selector);
-    if (!target || !lenisRef.current) {
-      return;
-    }
+    if (!target) return;
 
-    lenisRef.current.scrollTo(target, {
-      duration: 1.4,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      offset: -80,
-    });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(target, {
+        duration: 1.4,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        offset: -80,
+      });
+    } else {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const paletteItems = useMemo<PaletteItem[]>(
@@ -507,13 +543,15 @@ function App() {
     void loadGithub();
     void loadSpotify();
 
+    const pollInterval = isMobile ? 300000 : 60000;
+
     const intervalId = window.setInterval(() => {
       void loadGithub();
-    }, 60000);
+    }, pollInterval);
 
     const spotifyInterval = window.setInterval(() => {
       void loadSpotify();
-    }, 60000);
+    }, pollInterval);
 
     return () => {
       cancelled = true;
@@ -666,6 +704,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isMobile) return;
     const lenis = new Lenis({
       duration: 1.15,
       smoothWheel: true,
@@ -685,7 +724,7 @@ function App() {
       window.cancelAnimationFrame(frameId);
       lenis.destroy();
     };
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -716,6 +755,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isLoading || isMobile) return;
     const body = document.body;
     const root = document.documentElement;
     const cursor = cursorRef.current;
@@ -961,26 +1001,47 @@ function App() {
       document.removeEventListener("mouseleave", hideCursor);
       window.cancelAnimationFrame(frameId);
     };
-  }, []);
+  }, [isLoading]);
 
   return (
     <BackgroundProvider>
-    <div className="portfolio-shell" ref={rootRef}>
-      {!isMobile && <Suspense fallback={null}><AppBackground /></Suspense>}
+    <AnimatePresence>
+      {isLoading ? (
+        <motion.div
+          key="loader"
+          className="fixed inset-0 flex items-center justify-center bg-black"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+          <div className="flex flex-col items-center gap-12">
+            <UniqueLoading variant="morph" size="lg" />
+            <KineticTypographyLoader />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="portfolio"
+          className="portfolio-shell"
+          ref={rootRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+      <Suspense fallback={null}><AppBackground /></Suspense>
       {isMobile && <div className="liquid-field" aria-hidden="true" />}
-      <canvas className="particle-canvas" ref={particleCanvasRef} />
-      <div className="cursor-ring" ref={cursorRef}>
+      {!isMobile && <canvas className="particle-canvas" ref={particleCanvasRef} />}
+      {!isMobile && <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
-      </div>
-      <div className="cursor-dot" ref={cursorDotRef} />
+      </div>}
+      {!isMobile && <div className="cursor-dot" ref={cursorDotRef} />}
       <div className="noise-layer" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
 
       <motion.header
         className={`site-header${scrolled ? " site-header--scrolled" : ""}`}
-        animate={!isMobile ? { y: navHidden ? "-100%" : 0 } : undefined}
-        transition={!isMobile ? { type: "spring", stiffness: 300, damping: 30 } : undefined}
+        animate={{ y: navHidden ? "-100%" : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <a className="site-mark" href="#top">
           <span>MS</span>
@@ -998,7 +1059,7 @@ function App() {
         </nav>
 
         <div className="header-actions">
-          {!isMobile && <BgSwitcher />}
+          <BgSwitcher />
           <motion.button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
@@ -1245,9 +1306,7 @@ function App() {
               transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             >
               <div className="hero-canvas" aria-hidden="true">
-                <Suspense fallback={<div className="hero-canvas__fallback" />}>
-                  <HeroScene />
-                </Suspense>
+                <LazyHeroScene />
               </div>
 
               <motion.div
@@ -1759,7 +1818,9 @@ function App() {
           </div>
         </motion.section>
       </main>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
     </BackgroundProvider>
   );
 }

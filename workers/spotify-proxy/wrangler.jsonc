@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spotify-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-04",
+  "vars": {
+    "LISTENBRAINZ_USER": "kekebija1"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SPOTIFY_HISTORY",
+      "id": "3ba40dac2a4a4e5a873a2597e638af0d"
+    }
+  ]
+}

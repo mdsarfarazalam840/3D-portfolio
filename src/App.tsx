@@ -1,19 +1,30 @@
-import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useDeferredValue, useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { KineticTypographyLoader } from "@/components/ui/loading-animation";
+import UniqueLoading from "@/components/ui/morph-loading";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { GitHubCalendar } from "react-github-calendar";
+import { BackgroundProvider, useBackground } from "@/lib/backgrounds";
+import { BgSwitcher } from "@/components/ui/bg-switcher";
+const NeuralBackground = lazy(() => import("@/components/ui/neural-background").then(m => ({ default: m.NeuralBackground })));
+const AuroraBg = lazy(() => import("@/components/ui/aurora-bg").then(m => ({ default: m.AuroraBg })));
+const ParticleSwarm = lazy(() => import("@/components/ui/particle-swarm").then(m => ({ default: m.ParticleSwarm })));
+const WaveGrid = lazy(() => import("@/components/ui/wave-grid").then(m => ({ default: m.WaveGrid })));
+const GradientFlow = lazy(() => import("@/components/ui/gradient-flow").then(m => ({ default: m.GradientFlow })));
+import SimpleMarquee from "@/components/ui/simple-marquee";
+import CenterUnderline from "@/components/ui/underline-center";
+import ComesInGoesOutUnderline from "@/components/ui/underline-comes-in-goes-out";
+import GoesOutComesInUnderline from "@/components/ui/underline-goes-out-comes-in";
+import { featuredProjects, type Project } from "@/data/projects";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
 const resumeFileName = "Md-Sarfaraz-Alam-Resume.pdf";
 const profileImage = new URL("../IMG_5287.PNG", import.meta.url).href;
+const profileImageWebp = new URL("../public/IMG_5287.webp", import.meta.url).href;
 const githubUsername = "mdsarfarazalam840";
-const spotifyWidgetUrl =
-  "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true";
 const spotifyProfileUrl = "https://open.spotify.com/user/oj1xerhb9fby7dckdhp0yw3no";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const heroLines = [
   "Cloud reliability",
@@ -39,55 +50,65 @@ const signalPoints = [
   },
 ];
 
-const experienceStories = [
-  {
-    period: "Now",
-    title: "Senior Software Engineer at Accenture, supporting Shell",
-    copy:
-      "Own reliability work across enterprise Azure estates. I reduce MTTR, harden AKS workloads, improve Dynatrace visibility, and build CI/CD rails that remove manual risk from releases.",
-  },
-  {
-    period: "Earlier",
-    title: "Associate Software Engineer at Accenture",
-    copy:
-      "Built foundations in incident response, ITIL operations, Azure monitoring, and production issue resolution. This is where the operating discipline started.",
-  },
-];
+interface Experience {
+  period: string;
+  title: string;
+  subtitle: string;
+  bullets: string[];
+  stack: string;
+}
 
-const featuredProjects = [
+const experienceStories: Experience[] = [
   {
-    title: "Acquisitions API",
-    impact: "Secure backend with JWT auth, Neon PostgreSQL, Drizzle ORM, and role-based access control.",
-    stack: "Express.js / PostgreSQL / Drizzle / JWT / Arcjet",
-    href: "https://github.com/mdsarfarazalam840/acquisitions",
+    period: "June 2026 – Present",
+    title: "Senior Software Engineer",
+    subtitle: "Accenture · Client: Shell",
+    bullets: [
+      "Reduced P1/P2 MTTR by 40% through deep RCA, reliability engineering, and permanent corrective actions.",
+      "Architected CI/CD pipelines with GitHub Actions and Azure DevOps, enabling secure, zero-touch deployments.",
+      "Implemented enterprise Dynatrace observability with OneAgent and custom dashboards for proactive anomaly detection.",
+      "Led a 5-member engineering team, improving incident response, production stability, and operational practices.",
+      "Improved production reliability through automation, monitoring, and infrastructure optimization.",
+    ],
+    stack: "Azure · AKS · Kubernetes · Docker · GitHub Actions · Azure DevOps · Dynatrace · Terraform · PowerShell · Bash · Git",
   },
   {
-    title: "Space Drive",
-    impact: "Telegram-powered file dashboard with premium frontend motion and streaming-first interaction design.",
-    stack: "Next.js / Tailwind / Framer Motion / Telegram Cloud",
-    href: "https://github.com/mdsarfarazalam840/own-drive",
+    period: "March 2023 – May 2026",
+    title: "Software Engineer",
+    subtitle: "Accenture",
+    bullets: [
+      "Delivered L2/L3 support for 10+ enterprise cloud apps, ensuring high availability and rapid incident recovery.",
+      "Reduced Azure cloud costs by 20% through resource optimization, autoscaling, and intelligent database scaling.",
+      "Improved AKS workload stability with readiness/liveness probes, resource tuning, and Horizontal Pod Autoscaling.",
+      "Built an internal React monitoring dashboard for real-time trade flow and batch execution visibility.",
+      "Automated archival workflows using Azure Data Factory, reducing data processing time by 35%.",
+      "Enhanced deployment velocity by introducing automation and DevOps best practices.",
+    ],
+    stack: "Azure · AKS · Kubernetes · React · Azure Data Factory · SQL Server · Git · Azure DevOps · Docker",
   },
   {
-    title: "Telegram to Google Drive Bot",
-    impact: "High-throughput automation for streaming Telegram files into Google Drive with resumable uploads.",
-    stack: "Python / Pyrogram / Google Drive API / Docker",
-    href: "https://github.com/mdsarfarazalam840/New-Tg-Gd-Bot",
-  },
-  {
-    title: "Trading Migration System",
-    impact: "Enterprise migration platform for workflow movement between ETRM systems with audit visibility.",
-    stack: ".NET Core / React / MongoDB / Swagger",
-    href: "https://github.com/mdsarfarazalam840/Trading-Project-ETRM",
+    period: "October 2021 – February 2023",
+    title: "Associate Software Engineer",
+    subtitle: "Accenture",
+    bullets: [
+      "Built proactive monitoring using Azure Monitor, Log Analytics, and KQL for faster issue detection.",
+      "Supported Incident, Problem, and Change Management within ITIL-based production environments.",
+      "Accelerated release cycles by integrating Azure DevOps and GitHub-based CI/CD pipelines.",
+      "Collaborated cross-functionally to troubleshoot production issues and improve platform stability.",
+    ],
+    stack: "Azure Monitor · Log Analytics · KQL · Azure DevOps · GitHub Actions · SQL · ITIL",
   },
 ];
 
 const capabilityGroups = [
   "Azure",
   "AKS",
+  "Kubernetes",
   "Dynatrace",
   "CI/CD",
   "GitHub Actions",
   "Azure DevOps",
+  "Terraform",
   "Incident Response",
   "Observability",
   "Platform Reliability",
@@ -96,6 +117,10 @@ const capabilityGroups = [
   "Docker",
   "KQL",
   "Azure Data Factory",
+  "PowerShell",
+  "Bash",
+  "ITIL",
+  "SQL",
 ];
 
 const contactLinks = [
@@ -120,10 +145,19 @@ type GeneratedLiveData = {
     latestCommit: GithubActivity | null;
     profileUrl: string;
   };
+  projects?: Project[];
   spotify: {
     widgetUrl: string;
     profileUrl: string;
   };
+};
+
+type SpotifyTrack = {
+  title: string;
+  artist: string;
+  albumArt: string;
+  playedAt: string;
+  url: string;
 };
 
 type PaletteItem = {
@@ -155,6 +189,77 @@ function formatRelativeTime(value: string) {
   return `${Math.floor(months / 12)}y ago`;
 }
 
+function repoSlug(href: string) {
+  return href.split("/").filter(Boolean).pop()?.toLowerCase() ?? href.toLowerCase();
+}
+
+function mergeProjects(curated: Project[], generated?: Project[]): Project[] {
+  if (!generated || generated.length === 0) {
+    return curated;
+  }
+
+  const curatedSlugs = new Set(curated.map((project) => repoSlug(project.href)));
+  const additions = generated.filter((project) => !curatedSlugs.has(repoSlug(project.href)));
+
+  return [...curated, ...additions];
+}
+
+function AppBackground() {
+  const { currentBg } = useBackground();
+  switch (currentBg) {
+    case "neural":
+      return <NeuralBackground className="neural-bg" />;
+    case "aurora":
+      return <AuroraBg className="neural-bg" />;
+    case "particle-swarm":
+      return <ParticleSwarm className="neural-bg" />;
+    case "wave-grid":
+      return <WaveGrid className="neural-bg" />;
+    case "gradient-flow":
+      return <GradientFlow className="neural-bg" />;
+  }
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return isMobile;
+}
+
+function LazyHeroScene() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(entry.isIntersecting);
+      },
+      { threshold: 0, rootMargin: "600px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} style={{ width: "100%", height: "100%" }}>
+      <Suspense fallback={<div className="hero-canvas__fallback" />}>
+        <HeroScene paused={!visible} />
+      </Suspense>
+    </div>
+  );
+}
+
 function App() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -167,10 +272,25 @@ function App() {
   const [latestPush, setLatestPush] = useState<GithubActivity | null>(null);
   const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
   const [githubError, setGithubError] = useState(false);
+  const [projects, setProjects] = useState<Project[]>(featuredProjects);
+  const [spotifyTracks, setSpotifyTracks] = useState<SpotifyTrack[]>([]);
+  const [spotifyNowPlaying, setSpotifyNowPlaying] = useState<SpotifyTrack | null>(null);
+  const [spotifyError, setSpotifyError] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
+  const lastScrollY = useRef(0);
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const deferredCommandQuery = useDeferredValue(commandQuery);
+  const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 10500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const calendarTheme = useMemo(
     () => ({
@@ -192,11 +312,17 @@ function App() {
 
   const scrollToSelector = (selector: string) => {
     const target = document.querySelector<HTMLElement>(selector);
-    if (!target) {
-      return;
-    }
+    if (!target) return;
 
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(target, {
+        duration: 1.4,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        offset: -80,
+      });
+    } else {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const paletteItems = useMemo<PaletteItem[]>(
@@ -324,10 +450,28 @@ function App() {
       return (await response.json()) as GeneratedLiveData;
     };
 
+    const loadProjects = async () => {
+      try {
+        const snapshot = await loadGeneratedSnapshot();
+        if (!cancelled) {
+          setProjects(mergeProjects(featuredProjects, snapshot.projects));
+        }
+      } catch (err) {
+        console.warn("Projects snapshot load failed, using curated list:", err);
+      }
+    };
+
     const loadGithub = async () => {
       try {
+        const token = import.meta.env.VITE_GITHUB_TOKEN;
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
         const repoResponse = await fetch(
           `https://api.github.com/users/${githubUsername}/repos?sort=pushed&per_page=6&type=owner`,
+          { headers },
         );
         if (!repoResponse.ok) {
           throw new Error("Failed to load GitHub repos");
@@ -345,7 +489,7 @@ function App() {
           throw new Error("No repos found");
         }
 
-        const commitsResponse = await fetch(`https://api.github.com/repos/${targetRepo.full_name}/commits?per_page=2`);
+        const commitsResponse = await fetch(`https://api.github.com/repos/${targetRepo.full_name}/commits?per_page=2`, { headers });
         if (!commitsResponse.ok) {
           throw new Error("Failed to load latest commit");
         }
@@ -380,16 +524,21 @@ function App() {
           setLatestCommit(commitData);
           setGithubError(false);
         }
-      } catch {
+      } catch (err) {
+        console.warn("GitHub API fetch failed, falling back to snapshot:", err);
+
         try {
           const snapshot = await loadGeneratedSnapshot();
+          const hasValidData = snapshot.github.latestPush || snapshot.github.latestCommit;
 
           if (!cancelled) {
             setLatestPush(snapshot.github.latestPush);
             setLatestCommit(snapshot.github.latestCommit);
-            setGithubError(false);
+            setGithubError(!hasValidData);
           }
-        } catch {
+        } catch (snapErr) {
+          console.error("Snapshot fallback also failed:", snapErr);
+
           if (!cancelled) {
             setLatestPush(null);
             setLatestCommit(null);
@@ -399,15 +548,44 @@ function App() {
       }
     };
 
+    const loadSpotify = async () => {
+      try {
+        const endpoint = import.meta.env.VITE_SPOTIFY_NOW_PLAYING_URL?.trim();
+        if (!endpoint) return;
+
+        const res = await fetch(endpoint, { cache: "no-store" });
+        if (!res.ok) throw new Error("Spotify fetch failed");
+
+        const data = (await res.json()) as { tracks: SpotifyTrack[]; nowPlaying: SpotifyTrack | null };
+        if (!cancelled) {
+          setSpotifyTracks(data.tracks);
+          setSpotifyNowPlaying(data.nowPlaying);
+          setSpotifyError(false);
+        }
+      } catch (err) {
+        console.warn("Spotify fetch failed:", err);
+        if (!cancelled) setSpotifyError(true);
+      }
+    };
+
     void loadGithub();
+    void loadSpotify();
+    void loadProjects();
+
+    const pollInterval = isMobile ? 300000 : 60000;
 
     const intervalId = window.setInterval(() => {
       void loadGithub();
-    }, 60000);
+    }, pollInterval);
+
+    const spotifyInterval = window.setInterval(() => {
+      void loadSpotify();
+    }, pollInterval);
 
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      window.clearInterval(spotifyInterval);
     };
   }, []);
 
@@ -512,9 +690,12 @@ function App() {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        flatCommandItems[activeCommandIndex]?.action();
+        const action = flatCommandItems[activeCommandIndex]?.action;
         setCommandOpen(false);
         setCommandQuery("");
+        requestAnimationFrame(() => {
+          action?.();
+        });
       }
     };
 
@@ -523,6 +704,36 @@ function App() {
   }, [activeCommandIndex, commandOpen, flatCommandItems]);
 
   useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 80);
+      if (currentY > 80) {
+        setNavHidden(currentY > lastScrollY.current);
+      } else {
+        setNavHidden(false);
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
     const lenis = new Lenis({
       duration: 1.15,
       smoothWheel: true,
@@ -537,109 +748,43 @@ function App() {
     };
     frameId = window.requestAnimationFrame(raf);
 
-    const ctx = gsap.context(() => {
-      gsap.set(".reveal-line__inner", { yPercent: 110 });
-      gsap.set(".hero-fade", { opacity: 0, y: 28 });
-
-      const heroTimeline = gsap.timeline({ defaults: { ease: "power4.out" } });
-      heroTimeline
-        .to(".reveal-line__inner", {
-          yPercent: 0,
-          duration: 1.1,
-          stagger: 0.1,
-        })
-        .to(
-          ".hero-fade",
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            stagger: 0.08,
-          },
-          "-=0.7",
-        );
-
-      gsap.to(".portrait-frame", {
-        y: -18,
-        duration: 2.8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-
-      gsap.to(".portrait-ring", {
-        rotate: 360,
-        duration: 12,
-        repeat: -1,
-        ease: "none",
-      });
-
-      gsap.utils.toArray<HTMLElement>(".scene-section").forEach((section) => {
-        const targets = section.querySelectorAll<HTMLElement>("[data-animate]");
-
-        gsap.fromTo(
-          targets,
-          { opacity: 0, y: 42 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            stagger: 0.08,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 78%",
-            },
-          },
-        );
-
-        gsap.fromTo(
-          section,
-          { opacity: 0.5 },
-          {
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              end: "top 25%",
-              scrub: true,
-            },
-          },
-        );
-      });
-
-      gsap.utils.toArray<HTMLElement>(".section-wash").forEach((wash) => {
-        gsap.fromTo(
-          wash,
-          { yPercent: 14, opacity: 0.2 },
-          {
-            yPercent: -10,
-            opacity: 0.55,
-            ease: "none",
-            scrollTrigger: {
-              trigger: wash.parentElement,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          },
-        );
-      });
-    }, rootRef);
-
-    lenis.on("scroll", ScrollTrigger.update);
-
     return () => {
       lenisRef.current = null;
       window.cancelAnimationFrame(frameId);
       lenis.destroy();
-      ctx.revert();
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let lastX = window.innerWidth / 2;
+    let lastY = window.innerHeight / 2;
+    let lastTime = performance.now();
+
+    const onPointerMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = "touches" in e ? e.touches[0]?.clientX ?? lastX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0]?.clientY ?? lastY : e.clientY;
+      const now = performance.now();
+      const dt = Math.max(now - lastTime, 16);
+      const speed = Math.min(Math.hypot(clientX - lastX, clientY - lastY) / dt, 1.5);
+      lastX = clientX;
+      lastY = clientY;
+      lastTime = now;
+      root.style.setProperty("--pointer-x", `${clientX}px`);
+      root.style.setProperty("--pointer-y", `${clientY}px`);
+      root.style.setProperty("--pointer-speed", `${speed.toFixed(3)}`);
+    };
+
+    window.addEventListener("mousemove", onPointerMove);
+    window.addEventListener("touchmove", onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onPointerMove);
+      window.removeEventListener("touchmove", onPointerMove);
     };
   }, []);
 
   useEffect(() => {
+    if (isLoading || isMobile) return;
     const body = document.body;
     const root = document.documentElement;
     const cursor = cursorRef.current;
@@ -661,35 +806,30 @@ function App() {
       };
     }
 
-    const ringSize = 34;
-    const dotSize = 8;
+    const ringSize = 44;
+    const dotSize = 10;
 
     gsap.set([cursor, dot], { autoAlpha: 0, x: -999, y: -999 });
 
-    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    const ringPosition = { x: -999, y: -999 };
-    const dotPosition = { x: -999, y: -999 };
+    let cursorX = -999;
+    let cursorY = -999;
+    let dotX = -999;
+    let dotY = -999;
     const motion = { vx: 0, vy: 0, speed: 0 };
-    const ambientParticles = Array.from({ length: 72 }, () => ({
+    const ambientParticles = Array.from({ length: 48 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.45,
-      vy: (Math.random() - 0.5) * 0.45,
-      size: Math.random() * 2.4 + 0.8,
-      alpha: Math.random() * 0.4 + 0.18,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      size: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.2 + 0.08,
     }));
     const trailParticles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
-    const burstParticles: Array<{
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      life: number;
-      size: number;
-      hue: string;
-    }> = [];
-    let lastMoveX = pointer.x;
-    let lastMoveY = pointer.y;
+
+    const trailPoints = Array.from({ length: 18 }, () => ({ x: 0, y: 0 }));
+
+    let lastMoveX = 0;
+    let lastMoveY = 0;
     let lastMoveTime = performance.now();
     let hoverActive = false;
 
@@ -698,99 +838,69 @@ function App() {
       canvas.height = window.innerHeight;
     };
 
-    const syncPointer = (clientX: number, clientY: number, now = performance.now()) => {
+    const onMove = (event: MouseEvent) => {
+      const now = performance.now();
       const deltaTime = Math.max(now - lastMoveTime, 16);
-      motion.vx = clientX - lastMoveX;
-      motion.vy = clientY - lastMoveY;
-      motion.speed = Math.min(Math.hypot(motion.vx, motion.vy) / deltaTime, 2.4);
-      lastMoveX = clientX;
-      lastMoveY = clientY;
+      motion.vx = event.clientX - lastMoveX;
+      motion.vy = event.clientY - lastMoveY;
+      motion.speed = Math.min(Math.hypot(motion.vx, motion.vy) / deltaTime, 1.5);
+      lastMoveX = event.clientX;
+      lastMoveY = event.clientY;
       lastMoveTime = now;
-      pointer.x = clientX;
-      pointer.y = clientY;
 
-      root.style.setProperty("--pointer-x", `${clientX}px`);
-      root.style.setProperty("--pointer-y", `${clientY}px`);
+      cursorX = event.clientX - ringSize / 2;
+      cursorY = event.clientY - ringSize / 2;
+      dotX = event.clientX - dotSize / 2;
+      dotY = event.clientY - dotSize / 2;
+
+      root.style.setProperty("--pointer-x", `${event.clientX}px`);
+      root.style.setProperty("--pointer-y", `${event.clientY}px`);
       root.style.setProperty("--pointer-speed", `${motion.speed.toFixed(3)}`);
 
       gsap.set([cursor, dot], { autoAlpha: 1 });
-    };
 
-    const onMove = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
+      for (let i = trailPoints.length - 1; i > 0; i--) {
+        trailPoints[i].x = trailPoints[i - 1].x;
+        trailPoints[i].y = trailPoints[i - 1].y;
+      }
+      trailPoints[0].x = event.clientX;
+      trailPoints[0].y = event.clientY;
 
-      trailParticles.push({
-        x: event.clientX,
-        y: event.clientY,
-        vx: motion.vx * 0.08 + (Math.random() - 0.5) * 1.8,
-        vy: motion.vy * 0.08 + (Math.random() - 0.5) * 1.8,
-        life: 1,
-        size: Math.random() * 4 + 1.4 + motion.speed * 3.2,
-      });
+      if (motion.speed > 0.3) {
+        trailParticles.push({
+          x: event.clientX,
+          y: event.clientY,
+          vx: motion.vx * 0.05 + (Math.random() - 0.5) * 0.8,
+          vy: motion.vy * 0.05 + (Math.random() - 0.5) * 0.8,
+          life: 1,
+          size: Math.random() * 2.5 + 0.8 + motion.speed * 1.5,
+        });
 
-      if (trailParticles.length > 48) {
-        trailParticles.shift();
+        if (trailParticles.length > 32) {
+          trailParticles.shift();
+        }
       }
     };
 
-    const interactiveSelector = "a, button, input, .project-row, .live-card, .command-item";
-    const animateCursor = (scale: number, borderColor: string, boxShadow: string, duration: number) =>
-      gsap.to(cursorCore, {
-        scale,
-        borderColor,
-        boxShadow,
-        duration,
-        overwrite: true,
-      });
-
+    const interactiveSelector = "a, button, input, .project-marquee-card, .live-card, .command-item";
     const onEnter = () => {
       hoverActive = true;
-      animateCursor(
-        1.42,
-        "rgba(0,212,255,0.72)",
-        "0 0 28px rgba(0, 212, 255, 0.2), inset 0 0 14px rgba(139, 92, 246, 0.12)",
-        0.18,
-      );
-      gsap.to(dot, { scale: 1.25, duration: 0.18, overwrite: true });
+      gsap.to(cursorCore, { scale: 1.2, duration: 0.18, overwrite: true });
+      gsap.to(dot, { scale: 1.15, duration: 0.18, overwrite: true });
     };
     const onLeave = () => {
       hoverActive = false;
-      animateCursor(
-        1,
-        "rgba(255,255,255,0.16)",
-        "0 0 14px rgba(0, 212, 255, 0.1), inset 0 0 10px rgba(139, 92, 246, 0.08)",
-        0.18,
-      );
+      gsap.to(cursorCore, { scale: 1, duration: 0.18, overwrite: true });
       gsap.to(dot, { scale: 1, duration: 0.18, overwrite: true });
     };
     const hideCursor = () => gsap.to([cursor, dot], { autoAlpha: 0, duration: 0.16, overwrite: true });
-    const onDown = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
-
-      for (let index = 0; index < 16; index += 1) {
-        const angle = (Math.PI * 2 * index) / 16;
-        const burstSpeed = 1.8 + Math.random() * 2.8;
-        burstParticles.push({
-          x: event.clientX,
-          y: event.clientY,
-          vx: Math.cos(angle) * burstSpeed,
-          vy: Math.sin(angle) * burstSpeed,
-          life: 1,
-          size: Math.random() * 3.2 + 1.2,
-          hue: index % 2 === 0 ? "rgba(0, 212, 255," : "rgba(139, 92, 246,",
-        });
-      }
-
-      gsap.fromTo(cursorCore, { scale: hoverActive ? 1.46 : 1.18 }, {
-        scale: hoverActive ? 1.42 : 1,
-        duration: 0.26,
-        ease: "power3.out",
-        overwrite: true,
-      });
-      gsap.fromTo(dot, { scale: 2.2 }, { scale: hoverActive ? 1.25 : 1, duration: 0.22, overwrite: true });
+    const onDown = () => {
+      gsap.to(cursorCore, { scale: hoverActive ? 1.3 : 1.1, duration: 0.22, ease: "power3.out", overwrite: true });
+      gsap.to(dot, { scale: 1.6, duration: 0.18, overwrite: true });
     };
-    const onUp = (event: MouseEvent) => {
-      syncPointer(event.clientX, event.clientY);
+    const onUp = () => {
+      gsap.to(cursorCore, { scale: hoverActive ? 1.2 : 1, duration: 0.18, ease: "power3.out", overwrite: true });
+      gsap.to(dot, { scale: hoverActive ? 1.15 : 1, duration: 0.18, overwrite: true });
     };
     const onPointerOver = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
@@ -820,30 +930,22 @@ function App() {
 
     let frameId = 0;
     const render = () => {
-      ringPosition.x += (pointer.x - ringSize / 2 - ringPosition.x) * 0.16;
-      ringPosition.y += (pointer.y - ringSize / 2 - ringPosition.y) * 0.16;
-      dotPosition.x += (pointer.x - dotSize / 2 - dotPosition.x) * 0.34;
-      dotPosition.y += (pointer.y - dotSize / 2 - dotPosition.y) * 0.34;
-
-      gsap.set(cursor, { x: ringPosition.x, y: ringPosition.y });
-      gsap.set(dot, { x: dotPosition.x, y: dotPosition.y });
+      gsap.set(cursor, { x: cursorX, y: cursorY });
+      gsap.set(dot, { x: dotX, y: dotY });
 
       context.clearRect(0, 0, canvas.width, canvas.height);
-      context.globalCompositeOperation = "lighter";
 
       ambientParticles.forEach((particle) => {
-        const dx = pointer.x - particle.x;
-        const dy = pointer.y - particle.y;
+        const dx = (cursorX + ringSize / 2) - particle.x;
+        const dy = (cursorY + ringSize / 2) - particle.y;
         const distance = Math.hypot(dx, dy);
 
-        if (distance < 220) {
-          const force = ((220 - distance) / 220) * (0.8 + motion.speed * 1.6);
-          particle.x -= (dx / distance) * force * 2.1 || 0;
-          particle.y -= (dy / distance) * force * 2.1 || 0;
+        if (distance < 180) {
+          const force = ((180 - distance) / 180) * (0.4 + motion.speed * 0.8);
+          particle.x -= (dx / distance) * force * 1.5 || 0;
+          particle.y -= (dy / distance) * force * 1.5 || 0;
         }
 
-        particle.vx += motion.vx * 0.0008;
-        particle.vy += motion.vy * 0.0008;
         particle.vx *= 0.992;
         particle.vy *= 0.992;
         particle.x += particle.vx;
@@ -853,31 +955,10 @@ function App() {
         if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
 
         context.beginPath();
-        context.fillStyle = `rgba(0, 212, 255, ${particle.alpha + motion.speed * 0.05})`;
+        context.fillStyle = `rgba(255, 255, 255, ${particle.alpha + motion.speed * 0.03})`;
         context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         context.fill();
       });
-
-      if (trailParticles.length > 1) {
-        context.beginPath();
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.lineWidth = 10 + motion.speed * 8;
-
-        trailParticles.forEach((particle, index) => {
-          if (index === 0) {
-            context.moveTo(particle.x, particle.y);
-          } else {
-            const previous = trailParticles[index - 1];
-            const midpointX = (previous.x + particle.x) / 2;
-            const midpointY = (previous.y + particle.y) / 2;
-            context.quadraticCurveTo(previous.x, previous.y, midpointX, midpointY);
-          }
-        });
-
-        context.strokeStyle = `rgba(99, 102, 241, ${0.08 + motion.speed * 0.08})`;
-        context.stroke();
-      }
 
       for (let index = trailParticles.length - 1; index >= 0; index -= 1) {
         const particle = trailParticles[index];
@@ -885,7 +966,7 @@ function App() {
         particle.y += particle.vy;
         particle.vx *= 0.97;
         particle.vy *= 0.97;
-        particle.life -= 0.032;
+        particle.life -= 0.028;
 
         if (particle.life <= 0) {
           trailParticles.splice(index, 1);
@@ -893,31 +974,42 @@ function App() {
         }
 
         context.beginPath();
-        context.fillStyle = `rgba(139, 92, 246, ${particle.life * 0.26})`;
+        context.fillStyle = `rgba(255, 255, 255, ${particle.life * 0.15})`;
         context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
         context.fill();
       }
 
-      for (let index = burstParticles.length - 1; index >= 0; index -= 1) {
-        const particle = burstParticles[index];
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.vx *= 0.95;
-        particle.vy *= 0.95;
-        particle.life -= 0.045;
+      if (trailPoints.length > 2 && motion.speed > 0.05) {
+        context.beginPath();
+        context.moveTo(trailPoints[0].x, trailPoints[0].y);
 
-        if (particle.life <= 0) {
-          burstParticles.splice(index, 1);
-          continue;
+        for (let i = 1; i < trailPoints.length - 1; i++) {
+          const p0 = trailPoints[i - 1];
+          const p1 = trailPoints[i];
+          const p2 = trailPoints[i + 1];
+
+          const midX0 = (p0.x + p1.x) / 2;
+          const midY0 = (p0.y + p1.y) / 2;
+          const midX1 = (p1.x + p2.x) / 2;
+          const midY1 = (p1.y + p2.y) / 2;
+
+          context.quadraticCurveTo(midX0, midY0, midX1, midY1);
         }
 
-        context.beginPath();
-        context.fillStyle = `${particle.hue} ${particle.life * 0.5})`;
-        context.arc(particle.x, particle.y, particle.size * particle.life, 0, Math.PI * 2);
-        context.fill();
-      }
+        const lastPoint = trailPoints[trailPoints.length - 1];
+        context.lineTo(lastPoint.x, lastPoint.y);
 
-      context.globalCompositeOperation = "source-over";
+        const speedAlpha = Math.min(motion.speed * 0.6, 0.35);
+        context.strokeStyle = `rgba(0, 212, 255, ${speedAlpha})`;
+        context.lineWidth = 2.5;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.stroke();
+
+        context.lineWidth = 1.2;
+        context.strokeStyle = `rgba(160, 240, 255, ${speedAlpha * 0.6})`;
+        context.stroke();
+      }
 
       frameId = window.requestAnimationFrame(render);
     };
@@ -938,21 +1030,48 @@ function App() {
       document.removeEventListener("mouseleave", hideCursor);
       window.cancelAnimationFrame(frameId);
     };
-  }, []);
+  }, [isLoading]);
 
   return (
-    <div className="portfolio-shell" ref={rootRef}>
-      <canvas className="particle-canvas" ref={particleCanvasRef} />
-      <div className="liquid-field" aria-hidden="true" />
-      <div className="cursor-ring" ref={cursorRef}>
+    <BackgroundProvider>
+    <AnimatePresence>
+      {isLoading ? (
+        <motion.div
+          key="loader"
+          className="fixed inset-0 flex items-center justify-center bg-black"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+          <div className="flex flex-col items-center gap-12">
+            <UniqueLoading variant="morph" size="lg" />
+            <KineticTypographyLoader />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="portfolio"
+          className="portfolio-shell"
+          ref={rootRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        >
+      <Suspense fallback={null}><AppBackground /></Suspense>
+      {isMobile && <div className="liquid-field" aria-hidden="true" />}
+      {!isMobile && <canvas className="particle-canvas" ref={particleCanvasRef} />}
+      {!isMobile && <div className="cursor-ring" ref={cursorRef}>
         <div className="cursor-ring__core" ref={cursorCoreRef} />
-      </div>
-      <div className="cursor-dot" ref={cursorDotRef} />
+      </div>}
+      {!isMobile && <div className="cursor-dot" ref={cursorDotRef} />}
       <div className="noise-layer" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--one" aria-hidden="true" />
       <div className="ambient-blob ambient-blob--two" aria-hidden="true" />
 
-      <header className="site-header">
+      <motion.header
+        className={`site-header${scrolled ? " site-header--scrolled" : ""}`}
+        animate={{ y: navHidden ? "-100%" : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <a className="site-mark" href="#top">
           <span>MS</span>
           <div>
@@ -962,344 +1081,760 @@ function App() {
         </a>
 
         <nav className="site-nav" aria-label="Primary">
-          <a href="#story">Story</a>
-          <a href="#work">Work</a>
-          <a href="#capabilities">Capabilities</a>
-          <a href="#contact">Contact</a>
+          <button onClick={() => scrollToSelector("#story")}>Story</button>
+          <button onClick={() => scrollToSelector("#work")}>Work</button>
+          <button onClick={() => scrollToSelector("#capabilities")}>Capabilities</button>
+          <button onClick={() => scrollToSelector("#contact")}>Contact</button>
         </nav>
 
         <div className="header-actions">
-          <button
+          <BgSwitcher />
+          <motion.button
             aria-controls="command-palette"
             aria-expanded={commandOpen}
             aria-label="Open command palette"
             className="command-trigger"
             onClick={() => setCommandOpen(true)}
             type="button"
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             <span className="command-trigger__icon" aria-hidden="true">
               /
             </span>
             <span className="command-trigger__hint">Shift K</span>
-          </button>
+          </motion.button>
 
           <a className="resume-link" download={resumeFileName} href={resumePdf}>
             Resume
           </a>
+
+          <button
+            aria-controls="mobile-menu"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className={`menu-toggle${menuOpen ? " menu-toggle--active" : ""}`}
+            onClick={() => setMenuOpen((prev) => !prev)}
+            type="button"
+          >
+            <span className="menu-toggle__bar" />
+            <span className="menu-toggle__bar" />
+            <span className="menu-toggle__bar" />
+          </button>
         </div>
-      </header>
 
-      <div
-        aria-hidden={!commandOpen}
-        className={`command-overlay${commandOpen ? " command-overlay--open" : ""}`}
-        onClick={() => {
-          setCommandOpen(false);
-          setCommandQuery("");
-        }}
-      >
-        <section
-          aria-label="Command palette"
-          className="command-palette"
-          id="command-palette"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="command-palette__halo" aria-hidden="true" />
-          <div className="command-palette__input-shell">
-            <span className="command-palette__search-icon" aria-hidden="true">
-              Search
-            </span>
-            <input
-              onChange={(event) => {
-                setCommandQuery(event.target.value);
-                setActiveCommandIndex(0);
-              }}
-              placeholder="Type command or search signal..."
-              ref={commandInputRef}
-              type="text"
-              value={commandQuery}
-            />
-            <span className="command-palette__esc">ESC</span>
-          </div>
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              className="mobile-menu"
+              id="mobile-menu"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <nav className="mobile-menu__nav" aria-label="Primary">
+                <button
+                  onClick={() => { scrollToSelector("#story"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Story
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#work"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Work
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#capabilities"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Capabilities
+                </button>
+                <button
+                  onClick={() => { scrollToSelector("#contact"); setMenuOpen(false); }}
+                  type="button"
+                >
+                  Contact
+                </button>
+              </nav>
+              <a className="mobile-menu__resume" download={resumeFileName} href={resumePdf}>
+                Resume
+              </a>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
 
-          <div className="command-results" ref={commandResultsRef} role="listbox">
-            {commandGroups.length > 0 ? (
-              commandGroups.map((group) => (
-                <div className="command-group" key={group.group}>
-                  <div className="command-group__label">{group.group}</div>
-                  <div className="command-group__items">
-                    {group.items.map((item) => {
-                      const itemIndex = flatCommandItems.findIndex((entry) => entry.id === item.id);
-
-                      return (
-                        <button
-                          className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
-                          key={item.id}
-                          onClick={() => {
-                            item.action();
-                            setCommandOpen(false);
-                            setCommandQuery("");
-                          }}
-                          onMouseEnter={() => setActiveCommandIndex(itemIndex)}
-                          type="button"
-                        >
-                          <span className="command-item__glyph" aria-hidden="true">
-                            {item.group.slice(0, 1)}
-                          </span>
-                          <span className="command-item__copy">
-                            <strong>{item.title}</strong>
-                            <small>{item.description}</small>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="command-empty">
-                <strong>No signal found.</strong>
-                <small>Try project, resume, GitHub, Azure, work.</small>
+      <AnimatePresence>
+        {commandOpen && (
+          <motion.div
+            aria-hidden={false}
+            className="command-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={() => {
+              setCommandOpen(false);
+              setCommandQuery("");
+            }}
+          >
+            <motion.section
+              aria-label="Command palette"
+              className="command-palette"
+              id="command-palette"
+              initial={{ opacity: 0, y: -10, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.97 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="command-palette__halo" aria-hidden="true" />
+              <div className="command-palette__input-shell">
+                <span className="command-palette__search-icon" aria-hidden="true">
+                  Search
+                </span>
+                <input
+                  onChange={(event) => {
+                    setCommandQuery(event.target.value);
+                    setActiveCommandIndex(0);
+                  }}
+                  placeholder="Type command or search signal..."
+                  ref={commandInputRef}
+                  type="text"
+                  value={commandQuery}
+                />
+                <span className="command-palette__esc">ESC</span>
               </div>
-            )}
-          </div>
-        </section>
-      </div>
+
+              <div className="command-results" ref={commandResultsRef} role="listbox">
+                {commandGroups.length > 0 ? (
+                  commandGroups.map((group) => (
+                    <div className="command-group" key={group.group}>
+                      <div className="command-group__label">{group.group}</div>
+                      <div className="command-group__items">
+                        {group.items.map((item) => {
+                          const itemIndex = flatCommandItems.findIndex((entry) => entry.id === item.id);
+
+                          return (
+                            <button
+                              className={`command-item${itemIndex === activeCommandIndex ? " command-item--active" : ""}`}
+                              key={item.id}
+                              onClick={() => {
+                                const action = item.action;
+                                setCommandOpen(false);
+                                setCommandQuery("");
+                                requestAnimationFrame(() => {
+                                  action();
+                                });
+                              }}
+                              onMouseEnter={() => setActiveCommandIndex(itemIndex)}
+                              type="button"
+                            >
+                              <span className="command-item__glyph" aria-hidden="true">
+                                {item.group.slice(0, 1)}
+                              </span>
+                              <span className="command-item__copy">
+                                <strong>{item.title}</strong>
+                                <small>{item.description}</small>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="command-empty">
+                    <strong>No signal found.</strong>
+                    <small>Try project, resume, GitHub, Azure, work.</small>
+                  </div>
+                )}
+              </div>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="portfolio-main" id="top">
-        <section className="scene-section hero-scene" id="story">
+        <motion.section
+          className="scene-section hero-scene"
+          id="story"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="section-wash" aria-hidden="true" />
 
-          <div className="hero-copy">
-            <p className="hero-kicker hero-fade">Azure / AKS / observability / CI-CD / incident response</p>
+          <motion.div
+            className="hero-copy"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <motion.p
+              className="hero-kicker"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              Azure / AKS / observability / CI-CD / incident response
+            </motion.p>
 
             <h1 className="hero-title" aria-label={heroLines.join(" ")}>
-              {heroLines.map((line) => (
+              {heroLines.map((line, index) => (
                 <span className="reveal-line" key={line}>
-                  <span className="reveal-line__inner">{line}</span>
+                  <motion.span
+                    className="reveal-line__inner"
+                    initial={{ y: "110%" }}
+                    animate={{ y: "0%" }}
+                    transition={{ duration: 0.8, delay: 0.4 + index * 0.1, ease: [0.33, 1, 0.68, 1] }}
+                  >
+                    {line}
+                  </motion.span>
                 </span>
               ))}
             </h1>
 
-            <p className="hero-summary hero-fade">
+            <motion.p
+              className="hero-summary"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.7 }}
+            >
               I build calmer systems. Over the last 4+ years I have reduced MTTR, tuned cloud cost, improved AKS
               reliability, and supported enterprise production workloads where failure has real operational weight.
-            </p>
+            </motion.p>
 
-            <div className="hero-actions hero-fade">
+            <motion.div
+              className="hero-actions"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.8 }}
+            >
               <a className="text-button text-button--solid" href="#work">
                 View selected work
               </a>
               <a className="text-button" href="https://github.com/mdsarfarazalam840">
                 GitHub
               </a>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="hero-visual hero-fade">
-            <div className="hero-stage">
+          <motion.div
+            className="hero-visual"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.5 }}
+          >
+            <motion.div
+              className="hero-stage"
+              animate={{ y: [-18, 0, -18] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+            >
               <div className="hero-canvas" aria-hidden="true">
-                <Suspense fallback={<div className="hero-canvas__fallback" />}>
-                  <HeroScene />
-                </Suspense>
+                <LazyHeroScene />
               </div>
 
-              <div className="portrait-frame">
-                <div className="portrait-ring" />
+              <motion.div
+                className="portrait-frame"
+                animate={{ y: [-18, 0, -18] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <motion.div
+                  className="portrait-ring"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                />
                 <div className="portrait-core">
-                  <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
+                  <picture>
+                    <source media="(max-width: 768px)" srcSet={profileImageWebp} type="image/webp" />
+                    <source media="(min-width: 769px)" srcSet={profileImage} type="image/png" />
+                    <img alt="Portrait of Md Sarfaraz Alam" className="portrait-image" src={profileImage} />
+                  </picture>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="live-note">
+              <motion.div
+                className="live-note"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.6 }}
+              >
                 <span>Now</span>
                 <p>Improving Azure reliability, reducing incident noise, and building release confidence.</p>
-              </div>
-            </div>
-          </div>
-        </section>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
-        <section className="scene-section impact-scene">
+        <motion.section
+          className="scene-section impact-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.3 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <p className="scene-label" data-animate>
+          <motion.p
+            className="scene-label"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             Impact
-          </p>
+          </motion.p>
           <div className="impact-grid">
-            {signalPoints.map((point) => (
-              <article className="impact-item" data-animate key={point.label}>
+            {signalPoints.map((point, index) => (
+              <motion.article
+                className="impact-item"
+                key={point.label}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
+              >
                 <span className="impact-value">{point.value}</span>
                 <div>
                   <h2>{point.label}</h2>
                   <p>{point.detail}</p>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section live-scene">
+        <motion.section
+          className="scene-section live-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Live</p>
             <h2>Live signal.</h2>
-          </div>
+          </motion.div>
 
           <div className="live-grid">
-            <article className="live-card live-card--github" data-animate>
-              <div className="live-card__head">
-                <span>Parth's Github</span>
-                <a href={`https://github.com/${githubUsername}`}>Open profile</a>
-              </div>
-
-              <div className="github-stack">
-                {latestPush ? (
-                  <a className="github-block" href={latestPush.commitUrl}>
-                    <div className="github-block__meta">
-                      <span>Latest push</span>
-                      <small>{formatRelativeTime(latestPush.pushedAt)}</small>
-                    </div>
-                    <strong>"{latestPush.message}"</strong>
-                    <p>Repo: {latestPush.repo}</p>
+            {[
+              { content: "github", delay: 0 },
+              { content: "cta", delay: 0.1 },
+              { content: "spotify", delay: 0.2 },
+            ].map((item) => (
+              <motion.article
+                key={item.content}
+                className={`live-card live-card--${item.content}`}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 1, delay: item.delay, ease: [0.33, 1, 0.68, 1] }}
+              >
+                <div className="live-card__head">
+                  <span>{item.content === "github" ? "Sarfaraz's Github" : item.content === "cta" ? "Visitors" : "Last played"}</span>
+                  <a href={item.content === "spotify" ? spotifyProfileUrl : `https://github.com/${githubUsername}`}>
+                    Open {item.content === "github" ? "profile" : item.content === "cta" ? "" : "Spotify"}
                   </a>
-                ) : (
-                  <div className="live-empty">{githubError ? "GitHub API blocked or rate limited." : "Push data loading..."}</div>
-                )}
-
-                {latestCommit ? (
-                  <a className="github-block" href={latestCommit.commitUrl}>
-                    <div className="github-block__meta">
-                      <span>Latest commit</span>
-                      <small>{formatRelativeTime(latestCommit.pushedAt)}</small>
-                    </div>
-                    <strong>"{latestCommit.message}"</strong>
-                    <p>Repo: {latestCommit.repo}</p>
-                  </a>
-                ) : (
-                  <div className="live-empty">{githubError ? "Commit data unavailable." : "Commit data loading..."}</div>
-                )}
-              </div>
-            </article>
-
-            <article className="live-card live-card--cta" data-animate>
-              <div className="live-card__head">
-                <span>Visitors</span>
-              </div>
-              <div className="signature-card">
-                <h3>
-                  Leave your <em>signal</em>
-                </h3>
-                <p>Open for SRE, Azure reliability, and platform work.</p>
-                <a className="signature-link" href="mailto:md.sarfarazalam840@gmail.com">
-                  Contact me
-                </a>
-              </div>
-            </article>
-
-            <article className="live-card live-card--spotify" data-animate>
-              <div className="live-card__head">
-                <span>Last played</span>
-                <a href={spotifyProfileUrl}>Open Spotify</a>
-              </div>
-              <a className="spotify-widget spotify-widget--futuristic" href={spotifyProfileUrl}>
-                <span className="spotify-widget__glow" aria-hidden="true" />
-                <span className="spotify-widget__grid" aria-hidden="true" />
-                <span className="spotify-widget__orbit" aria-hidden="true" />
-                <div className="spotify-widget__chrome">
-                  <span className="spotify-pill">Live audio signal</span>
                 </div>
-                <img alt="Spotify recently played widget" src={spotifyWidgetUrl} />
-              </a>
-            </article>
-          </div>
-        </section>
 
-        <section className="scene-section narrative-scene" id="work">
+                {item.content === "github" && (
+                  <div className="github-stack">
+                    {latestPush ? (
+                      <motion.a
+                        className="github-block"
+                        href={latestPush.commitUrl}
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <div className="github-block__meta">
+                          <span>Latest push</span>
+                          <small>{formatRelativeTime(latestPush.pushedAt)}</small>
+                        </div>
+                        <strong>"{latestPush.message}"</strong>
+                        <p>Repo: {latestPush.repo}</p>
+                      </motion.a>
+                    ) : (
+                      <div className="live-empty">{githubError ? "GitHub API blocked or rate limited." : "Push data loading..."}</div>
+                    )}
+
+                    {latestCommit ? (
+                      <motion.a
+                        className="github-block"
+                        href={latestCommit.commitUrl}
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <div className="github-block__meta">
+                          <span>Latest commit</span>
+                          <small>{formatRelativeTime(latestCommit.pushedAt)}</small>
+                        </div>
+                        <strong>"{latestCommit.message}"</strong>
+                        <p>Repo: {latestCommit.repo}</p>
+                      </motion.a>
+                    ) : (
+                      <div className="live-empty">{githubError ? "Commit data unavailable." : "Commit data loading..."}</div>
+                    )}
+                  </div>
+                )}
+
+                {item.content === "cta" && (
+                  <div className="signature-card">
+                    <h3>
+                      Leave your <em>signal</em>
+                    </h3>
+                    <p>Open for SRE, Azure reliability, and platform work.</p>
+                    <motion.a
+                      className="signature-link"
+                      href="mailto:md.sarfarazalam840@gmail.com"
+                      whileHover={{ y: -2, boxShadow: "0 0 36px rgba(255, 166, 71, 0.22)" }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      Contact me
+                    </motion.a>
+                  </div>
+                )}
+
+                {item.content === "spotify" && (
+                  <motion.div
+                    className="spotify-widget spotify-widget--futuristic"
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <span className="spotify-widget__glow" aria-hidden="true" />
+                    <span className="spotify-widget__grid" aria-hidden="true" />
+                    <span className="spotify-widget__orbit" aria-hidden="true" />
+                    <div className="spotify-widget__chrome">
+                      <span className="spotify-pill">
+                        {spotifyNowPlaying ? "Now playing" : "Live audio signal"}
+                      </span>
+                    </div>
+                    <div className="spotify-tracklist">
+                      {spotifyNowPlaying && (
+                        <a
+                          className="spotify-entry spotify-entry--now"
+                          href={spotifyNowPlaying.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {spotifyNowPlaying.albumArt ? (
+                            <img src={spotifyNowPlaying.albumArt} alt="" loading="lazy" />
+                          ) : (
+                            <span className="album-fallback">♫</span>
+                          )}
+                          <div>
+                            <strong>{spotifyNowPlaying.title}</strong>
+                            <small>{spotifyNowPlaying.artist}</small>
+                            <p>Now playing</p>
+                          </div>
+                        </a>
+                      )}
+                      {spotifyError ? (
+                        <div className="live-empty">Spotify data unavailable.</div>
+                      ) : spotifyTracks.length === 0 && !spotifyNowPlaying ? (
+                        <div className="live-empty">No recently played tracks.</div>
+                      ) : (
+                        spotifyTracks.slice(0, 5).map((track, i) => (
+                          <a
+                            key={`${track.url}-${i}`}
+                            className="spotify-entry"
+                            href={track.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {track.albumArt ? (
+                              <img src={track.albumArt} alt="" loading="lazy" />
+                            ) : (
+                              <span className="album-fallback">♫</span>
+                            )}
+                            <div>
+                              <strong>{track.title}</strong>
+                              <small>{track.artist}</small>
+                              <p>{formatRelativeTime(track.playedAt)}</p>
+                            </div>
+                          </a>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.article>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="scene-section narrative-scene"
+          id="work"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Experience</p>
             <h2>Production work, told as operating narrative not resume dump.</h2>
-          </div>
+          </motion.div>
 
           <div className="story-list">
-            {experienceStories.map((story) => (
-              <article className="story-item" data-animate key={story.title}>
+            {experienceStories.map((story, index) => (
+              <motion.article
+                className="story-item"
+                key={story.title}
+                initial={{ opacity: 0, y: 42 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 1, delay: index * 0.08, ease: [0.33, 1, 0.68, 1] }}
+              >
                 <span>{story.period}</span>
                 <div>
                   <h3>{story.title}</h3>
-                  <p>{story.copy}</p>
+                  <p className="story-subtitle">{story.subtitle}</p>
+                  <ul className="story-bullets">
+                    {story.bullets.map((b, i) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                  <p className="story-stack">{story.stack}</p>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section projects-scene">
+        <motion.section
+          className="scene-section projects-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Projects</p>
-            <h2>Few projects. Real impact. No clutter.</h2>
-          </div>
+            <h2>Projects that make a difference.</h2>
+          </motion.div>
 
-          <div className="project-list">
-            {featuredProjects.map((project) => (
-              <a className="project-row" data-animate href={project.href} key={project.title}>
-                <div className="project-row__main">
-                  <h3>{project.title}</h3>
-                  <p>{project.impact}</p>
-                </div>
-                <div className="project-row__side">
-                  <span>{project.stack}</span>
-                  <strong>Open repo</strong>
-                </div>
-              </a>
-            ))}
+          <div className="project-marquee">
+            {(() => {
+              const ROW_COUNT = 4;
+              const perRow = Math.ceil(projects.length / ROW_COUNT);
+              const rows = Array.from({ length: ROW_COUNT }, (_, i) =>
+                projects.slice(i * perRow, (i + 1) * perRow)
+              ).filter(row => row.length > 0);
+              return rows.map((row, i) => (
+                <SimpleMarquee
+                  key={i}
+                  className={`w-full${i > 0 ? " mt-2 sm:mt-3 md:mt-4" : ""}`}
+                  baseVelocity={8}
+                  repeat={4}
+                  slowdownOnHover
+                  slowDownFactor={0.2}
+                  slowDownSpringConfig={{ damping: 60, stiffness: 300 }}
+                  useScrollVelocity
+                  scrollAwareDirection
+                  scrollSpringConfig={{ damping: 50, stiffness: 400 }}
+                  direction={i % 2 === 0 ? "left" : "right"}
+                >
+                  {row.map((project) => (
+                    <a
+                      key={project.title}
+                      href={project.href}
+                      className="mx-3 w-72 sm:w-80 md:w-96 shrink-0 block group"
+                    >
+                      <div className="project-marquee-card">
+                        <h3 className="text-white text-base sm:text-lg md:text-xl font-medium mb-1.5 sm:mb-2">
+                          {project.title}
+                        </h3>
+                        <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                          {project.impact}
+                        </p>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs text-neutral-300">
+                          {project.stack}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </SimpleMarquee>
+              ));
+            })()}
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section capabilities-scene" id="capabilities">
+        <motion.section
+          className="scene-section capabilities-scene"
+          id="capabilities"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">Capabilities</p>
             <h2>Stack shown with restraint.</h2>
-          </div>
+          </motion.div>
 
-          <div className="capability-cloud" data-animate>
-            {capabilityGroups.map((item) => (
-              <span key={item}>{item}</span>
+          <motion.div
+            className="capability-cloud"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.5 }}
+            transition={{ duration: 1, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
+          >
+            {capabilityGroups.map((item, index) => (
+              <motion.span
+                key={item}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 0.92, y: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                whileHover={{ scale: 1.1, color: "#00d4ff" }}
+                transition={{ duration: 0.4, delay: index * 0.03 }}
+              >
+                {item}
+              </motion.span>
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
-        <section className="scene-section contact-scene" id="contact">
+        <motion.section
+          className="scene-section contact-scene"
+          id="contact"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
           <div className="contact-layout">
-            <div className="contact-copy" data-animate>
+            <motion.div
+              className="contact-copy"
+              initial={{ opacity: 0, y: 42 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.5 }}
+              transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+            >
               <p className="scene-label">Contact</p>
               <h2>Open for reliability-first engineering, platform support, and cloud operations work.</h2>
               <p>
                 Best fit for teams that care about release discipline, observability quality, AKS operations, incident
                 response, and measurable production improvement.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="contact-links" data-animate>
-              {contactLinks.map((item) => (
-                <a download={item.label === "Resume" ? resumeFileName : undefined} href={item.href} key={item.label}>
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </a>
-              ))}
-            </div>
+            <motion.div
+              className="contact-links"
+              initial={{ opacity: 0, y: 42 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.5 }}
+              transition={{ duration: 1, delay: 0.1, ease: [0.33, 1, 0.68, 1] }}
+            >
+              <motion.a
+                href={contactLinks[0].href}
+                key={contactLinks[0].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <CenterUnderline>
+                  <span>{contactLinks[0].label}</span>
+                  <strong>{contactLinks[0].value}</strong>
+                </CenterUnderline>
+              </motion.a>
+              <motion.a
+                href={contactLinks[1].href}
+                key={contactLinks[1].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.28 }}
+              >
+                <ComesInGoesOutUnderline direction="right">
+                  <span>{contactLinks[1].label}</span>
+                  <strong>{contactLinks[1].value}</strong>
+                </ComesInGoesOutUnderline>
+              </motion.a>
+              <motion.a
+                href={contactLinks[2].href}
+                key={contactLinks[2].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.36 }}
+              >
+                <ComesInGoesOutUnderline direction="left">
+                  <span>{contactLinks[2].label}</span>
+                  <strong>{contactLinks[2].value}</strong>
+                </ComesInGoesOutUnderline>
+              </motion.a>
+              <motion.a
+                download={contactLinks[3].label === "Resume" ? resumeFileName : undefined}
+                href={contactLinks[3].href}
+                key={contactLinks[3].label}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.44 }}
+              >
+                <GoesOutComesInUnderline direction="left">
+                  <span>{contactLinks[3].label}</span>
+                  <strong>{contactLinks[3].value}</strong>
+                </GoesOutComesInUnderline>
+              </motion.a>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="scene-section github-graph-scene">
+        <motion.section
+          className="scene-section github-graph-scene"
+          initial={{ opacity: 0.5 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="section-wash" aria-hidden="true" />
-          <div className="scene-heading" data-animate>
+          <motion.div
+            className="scene-heading"
+            initial={{ opacity: 0, y: 42 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1, ease: [0.33, 1, 0.68, 1] }}
+          >
             <p className="scene-label">GitHub graph</p>
             <h2>Contribution graph sits at bottom now.</h2>
-          </div>
+          </motion.div>
 
-          <div className="calendar-shell calendar-shell--bottom" data-animate>
+          <div className="calendar-shell calendar-shell--bottom" data-animate style={{ contain: 'layout paint' }}>
             <GitHubCalendar
               blockMargin={4}
               blockRadius={3}
@@ -1310,9 +1845,12 @@ function App() {
               username={githubUsername}
             />
           </div>
-        </section>
+        </motion.section>
       </main>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
+    </BackgroundProvider>
   );
 }
 

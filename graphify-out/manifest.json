@@ -1,0 +1,314 @@
+{
+  "F:\\3d-portfolio\\serve-preview.mjs": {
+    "mtime": 1774595118.4393413,
+    "hash": "ae28034cff2b4ebce0f291a602680825"
+  },
+  "F:\\3d-portfolio\\vite.config.ts": {
+    "mtime": 1774602696.708387,
+    "hash": "532c4a03d62ee60927359b2a04a5d1fc"
+  },
+  "F:\\3d-portfolio\\caveman\\benchmarks\\run.py": {
+    "mtime": 1776002881.1668923,
+    "hash": "fa73a2f83ebdd1bd4c252a11ab5ef9a8"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\benchmark.py": {
+    "mtime": 1776002881.1709044,
+    "hash": "1e9c1ecdc55175a7c7c4ee2861bd1b35"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\cli.py": {
+    "mtime": 1776002881.1709044,
+    "hash": "d47af6bda1e7ee655d2e336c80a9fef6"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\compress.py": {
+    "mtime": 1776002881.1709044,
+    "hash": "060a9f0f9bfaf18bebfd4ac8d76ac35e"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\detect.py": {
+    "mtime": 1776002881.1731467,
+    "hash": "5e6c943821bd9fb4eb80e3aa6c965cb6"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\validate.py": {
+    "mtime": 1776002881.1731467,
+    "hash": "c3ffdf9e3c0b1c735f9d246b345fcebc"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\__init__.py": {
+    "mtime": 1776002881.169905,
+    "hash": "d6acae7e188357d1bc1258ce02a29811"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\scripts\\__main__.py": {
+    "mtime": 1776002881.169905,
+    "hash": "5bd0e02db4907bf4e435e5d770256fef"
+  },
+  "F:\\3d-portfolio\\caveman\\evals\\llm_run.py": {
+    "mtime": 1776002881.1766958,
+    "hash": "5e35c4902a8a89e7f982c91a38e7c06c"
+  },
+  "F:\\3d-portfolio\\caveman\\evals\\measure.py": {
+    "mtime": 1776002881.1766958,
+    "hash": "a3b70208993525e7bea234ca893effba"
+  },
+  "F:\\3d-portfolio\\caveman\\evals\\plot.py": {
+    "mtime": 1776002881.1766958,
+    "hash": "02ba92a2a308aab29a671581307c1723"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\caveman-activate.js": {
+    "mtime": 1776002881.1766958,
+    "hash": "61e1217ea74470d686354bfc13c5e85a"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\caveman-config.js": {
+    "mtime": 1776002881.1766958,
+    "hash": "d36acacb0ad1d1a4afdc3a8fbe109e9c"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\caveman-mode-tracker.js": {
+    "mtime": 1776002881.1766958,
+    "hash": "26716321d26e994148fa73f40a7aadde"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\caveman-statusline.ps1": {
+    "mtime": 1776002881.1766958,
+    "hash": "214cf8bab951f64136e5e261782a1780"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\install.ps1": {
+    "mtime": 1776002881.186915,
+    "hash": "5f7db73f6dc4b2324584cd3a087e8401"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\uninstall.ps1": {
+    "mtime": 1776002881.186915,
+    "hash": "0b8bd21421aa8b1636c7d42604e2fd46"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\benchmark.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "1e9c1ecdc55175a7c7c4ee2861bd1b35"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\cli.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "d47af6bda1e7ee655d2e336c80a9fef6"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\compress.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "060a9f0f9bfaf18bebfd4ac8d76ac35e"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\detect.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "5e6c943821bd9fb4eb80e3aa6c965cb6"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\validate.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "c3ffdf9e3c0b1c735f9d246b345fcebc"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\__init__.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "d6acae7e188357d1bc1258ce02a29811"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\scripts\\__main__.py": {
+    "mtime": 1776002881.1965382,
+    "hash": "5bd0e02db4907bf4e435e5d770256fef"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\test_hooks.py": {
+    "mtime": 1776002881.206703,
+    "hash": "0d3fc8921c421f4cdf6858fd7f6cbf54"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\verify_repo.py": {
+    "mtime": 1776002881.206703,
+    "hash": "d71175b0d0977fa396660a6d86ecbca8"
+  },
+  "F:\\3d-portfolio\\scripts\\generate-live-data.mjs": {
+    "mtime": 1776105327.059942,
+    "hash": "cf52f54171b3e1724d4062e210410fe6"
+  },
+  "F:\\3d-portfolio\\src\\App.tsx": {
+    "mtime": 1778308530.6375365,
+    "hash": "15f00f890fd7ec981a3853fe186ef354"
+  },
+  "F:\\3d-portfolio\\src\\main.tsx": {
+    "mtime": 1774590783.018987,
+    "hash": "b10cc23e037e00a74cdc9416030d8306"
+  },
+  "F:\\3d-portfolio\\src\\components\\hero-scene.tsx": {
+    "mtime": 1774604000.9938946,
+    "hash": "401640d7e3bb844019d401c1accfb88d"
+  },
+  "F:\\3d-portfolio\\AGENTS.md": {
+    "mtime": 1774590307.3588555,
+    "hash": "72ea32c91ae21e765b2fde84a5a4b618"
+  },
+  "F:\\3d-portfolio\\DESIGN.md": {
+    "mtime": 1776058463.5786726,
+    "hash": "ea77baf61df19a3ec92db148a61df44a"
+  },
+  "F:\\3d-portfolio\\index.html": {
+    "mtime": 1774604127.4860845,
+    "hash": "249a03210ae54ac0838ab1dfc3c7560c"
+  },
+  "F:\\3d-portfolio\\README.md": {
+    "mtime": 1776260552.441025,
+    "hash": "2eb9511a7889f8efb616c58385244dc6"
+  },
+  "F:\\3d-portfolio\\skillkit.yaml": {
+    "mtime": 1774590307.3588555,
+    "hash": "2ffd2211ac7da13ed04a4911de7471df"
+  },
+  "F:\\3d-portfolio\\caveman\\AGENTS.md": {
+    "mtime": 1776002881.1608288,
+    "hash": "ba3bb5a877fa40bc0aadf0e74c9c3e80"
+  },
+  "F:\\3d-portfolio\\caveman\\CLAUDE.md": {
+    "mtime": 1776002881.1618307,
+    "hash": "fb872d2faaadb6b9c56ab3935daa36be"
+  },
+  "F:\\3d-portfolio\\caveman\\CLAUDE.original.md": {
+    "mtime": 1776002881.1618307,
+    "hash": "d00e5d89d083476c8d42bac8b02d6466"
+  },
+  "F:\\3d-portfolio\\caveman\\CONTRIBUTING.md": {
+    "mtime": 1776002881.1628332,
+    "hash": "7a4ceacbc2f0b945ea4e6d288a236659"
+  },
+  "F:\\3d-portfolio\\caveman\\GEMINI.md": {
+    "mtime": 1776002881.1638324,
+    "hash": "ba3bb5a877fa40bc0aadf0e74c9c3e80"
+  },
+  "F:\\3d-portfolio\\caveman\\README.md": {
+    "mtime": 1776002881.1642053,
+    "hash": "51c418121fcef369f36af78f1f722f15"
+  },
+  "F:\\3d-portfolio\\caveman\\benchmarks\\requirements.txt": {
+    "mtime": 1776002881.1653807,
+    "hash": "962f8f00d471929186d0603180d131bc"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman\\SKILL.md": {
+    "mtime": 1776002881.1731467,
+    "hash": "7cf36086b6a2302a1de9ddebd594dc06"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\README.md": {
+    "mtime": 1776002881.167905,
+    "hash": "aef81db1025a411d42b4ac20bec505f9"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\SECURITY.md": {
+    "mtime": 1776002881.167905,
+    "hash": "b2caed82d9d4a58c0530f7e741851224"
+  },
+  "F:\\3d-portfolio\\caveman\\caveman-compress\\SKILL.md": {
+    "mtime": 1776002881.1689034,
+    "hash": "6aa29a3e276c0b6bbf4ae4ce56f937b4"
+  },
+  "F:\\3d-portfolio\\caveman\\compress\\SKILL.md": {
+    "mtime": 1776002881.1766958,
+    "hash": "dc6f6841a3969fa58f5528b770f7f04f"
+  },
+  "F:\\3d-portfolio\\caveman\\docs\\index.html": {
+    "mtime": 1776002881.1766958,
+    "hash": "cfb157cd94a31d45d950d3bdcc231e25"
+  },
+  "F:\\3d-portfolio\\caveman\\evals\\README.md": {
+    "mtime": 1776002881.1766958,
+    "hash": "0eb4ed685b6eaf21e29db37fe2b1e7e1"
+  },
+  "F:\\3d-portfolio\\caveman\\evals\\prompts\\en.txt": {
+    "mtime": 1776002881.1766958,
+    "hash": "a9aa90f33cbe052a5b1186da15b1980a"
+  },
+  "F:\\3d-portfolio\\caveman\\hooks\\README.md": {
+    "mtime": 1776002881.1766958,
+    "hash": "b2d777bb4b69052c91232d8e62ccfb33"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\caveman\\SKILL.md": {
+    "mtime": 1776002881.186915,
+    "hash": "7cf36086b6a2302a1de9ddebd594dc06"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\caveman\\agents\\openai.yaml": {
+    "mtime": 1776002881.186915,
+    "hash": "756163a23db1b56d60c527c8d7edd43b"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\compress\\SKILL.md": {
+    "mtime": 1776002881.186915,
+    "hash": "547f0328c6233f18f2b069a0b0669938"
+  },
+  "F:\\3d-portfolio\\caveman\\rules\\caveman-activate.md": {
+    "mtime": 1776002881.1965382,
+    "hash": "842f73fb8944c06f82037e6f2deb28dc"
+  },
+  "F:\\3d-portfolio\\caveman\\skills\\caveman\\SKILL.md": {
+    "mtime": 1776002881.2028182,
+    "hash": "7cf36086b6a2302a1de9ddebd594dc06"
+  },
+  "F:\\3d-portfolio\\caveman\\skills\\caveman-commit\\SKILL.md": {
+    "mtime": 1776002881.1965382,
+    "hash": "e8d814f342ec5752f47866299badd0a7"
+  },
+  "F:\\3d-portfolio\\caveman\\skills\\caveman-help\\SKILL.md": {
+    "mtime": 1776002881.1965382,
+    "hash": "7058f3788968343a0beece99b869e6e0"
+  },
+  "F:\\3d-portfolio\\caveman\\skills\\caveman-review\\SKILL.md": {
+    "mtime": 1776002881.1965382,
+    "hash": "0e038c50a6bfdc9b8a307e6316c07236"
+  },
+  "F:\\3d-portfolio\\caveman\\skills\\compress\\SKILL.md": {
+    "mtime": 1776002881.2028182,
+    "hash": "8fbab8c9e6776f5fe54d37d4a79bcf1e"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\claude-md-preferences.md": {
+    "mtime": 1776002881.2028182,
+    "hash": "a2bb410635ed296ba1b30ffb10f84dbe"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\claude-md-preferences.original.md": {
+    "mtime": 1776002881.2028182,
+    "hash": "ef7c5b56b7fdb75b15235e998a7e744e"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\claude-md-project.md": {
+    "mtime": 1776002881.2028182,
+    "hash": "fc130a0f75bf4e314b77291682454b54"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\claude-md-project.original.md": {
+    "mtime": 1776002881.206703,
+    "hash": "4cc90597567f4a463d26c0d16ccdbfe0"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\mixed-with-code.md": {
+    "mtime": 1776002881.206703,
+    "hash": "101eaf3ebc5183e65f80e99495092004"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\mixed-with-code.original.md": {
+    "mtime": 1776002881.206703,
+    "hash": "d081b017c5f795993f72e04ed99d35ae"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\project-notes.md": {
+    "mtime": 1776002881.206703,
+    "hash": "15101d44f9db03298ea90ae73f0cc769"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\project-notes.original.md": {
+    "mtime": 1776002881.206703,
+    "hash": "0353ad910d160db75a74aed4eb6631e6"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\todo-list.md": {
+    "mtime": 1776002881.206703,
+    "hash": "0513f74e495fa4a013bd69d1f5b54e8d"
+  },
+  "F:\\3d-portfolio\\caveman\\tests\\caveman-compress\\todo-list.original.md": {
+    "mtime": 1776002881.206703,
+    "hash": "298cd528d5ea0b1af038074e2159f874"
+  },
+  "F:\\3d-portfolio\\SRE-Sarfaraz.pdf": {
+    "mtime": 1776006319.1284697,
+    "hash": "ef8f1224f311d962d15cae10dbbe1f8d"
+  },
+  "F:\\3d-portfolio\\IMG_5287.PNG": {
+    "mtime": 1776055112.7750287,
+    "hash": "e9bd23685e1c05142e60fc58f6ec17a2"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\assets\\caveman-small.svg": {
+    "mtime": 1776002881.186915,
+    "hash": "6dc2ad37a1464bdacce5e1521dc24f49"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\assets\\caveman.svg": {
+    "mtime": 1776002881.186915,
+    "hash": "aa040c7fb59a5b7a3ca3be6f0b439c72"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\caveman\\assets\\caveman-small.svg": {
+    "mtime": 1776002881.186915,
+    "hash": "6dc2ad37a1464bdacce5e1521dc24f49"
+  },
+  "F:\\3d-portfolio\\caveman\\plugins\\caveman\\skills\\caveman\\assets\\caveman.svg": {
+    "mtime": 1776002881.186915,
+    "hash": "aa040c7fb59a5b7a3ca3be6f0b439c72"
+  }
+}

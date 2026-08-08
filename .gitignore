@@ -17,3 +17,6 @@ test-results/
 
 .codex/
 .skillkit/
+graphify-out/cache/
+.graphify_*
+.opencode/

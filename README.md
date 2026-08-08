@@ -119,7 +119,8 @@ npm run preview
 - no env vars needed right now
 - `IMG_5287.PNG` still heavy
 - Three.js chunk still large
-- Vite shows warning for resume PDF runtime resolution
+- resume link now expects `public/resume.pdf` by default
+- or set `VITE_RESUME_URL` for hosted resume PDF
 - GitHub REST API can rate-limit in browser, fallback snapshot now covers that
 - Docker push runs only if `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets exist
 

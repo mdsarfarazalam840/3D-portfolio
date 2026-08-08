@@ -73,9 +73,13 @@ jobs:
         run: npm ci
 
       - name: generate live data snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run generate:live-data
 
       - name: build production bundle
+        env:
+          VITE_SPOTIFY_NOW_PLAYING_URL: https://spotify-proxy.md-sarfarazalam840.workers.dev
         run: npm run build
 
       - name: pack release artifact

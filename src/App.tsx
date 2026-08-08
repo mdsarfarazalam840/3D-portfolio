@@ -16,7 +16,7 @@ import SimpleMarquee from "@/components/ui/simple-marquee";
 import CenterUnderline from "@/components/ui/underline-center";
 import ComesInGoesOutUnderline from "@/components/ui/underline-comes-in-goes-out";
 import GoesOutComesInUnderline from "@/components/ui/underline-goes-out-comes-in";
-import { featuredProjects } from "@/data/projects";
+import { featuredProjects, type Project } from "@/data/projects";
 
 const HeroScene = lazy(() => import("./components/hero-scene"));
 const resumePdf = import.meta.env.VITE_RESUME_URL?.trim() || new URL("../SRE-Sarfaraz.pdf", import.meta.url).href;
@@ -145,6 +145,7 @@ type GeneratedLiveData = {
     latestCommit: GithubActivity | null;
     profileUrl: string;
   };
+  projects?: Project[];
   spotify: {
     widgetUrl: string;
     profileUrl: string;
@@ -186,6 +187,21 @@ function formatRelativeTime(value: string) {
   const months = Math.floor(days / 30);
   if (months < 12) return `${months}mo ago`;
   return `${Math.floor(months / 12)}y ago`;
+}
+
+function repoSlug(href: string) {
+  return href.split("/").filter(Boolean).pop()?.toLowerCase() ?? href.toLowerCase();
+}
+
+function mergeProjects(curated: Project[], generated?: Project[]): Project[] {
+  if (!generated || generated.length === 0) {
+    return curated;
+  }
+
+  const curatedSlugs = new Set(curated.map((project) => repoSlug(project.href)));
+  const additions = generated.filter((project) => !curatedSlugs.has(repoSlug(project.href)));
+
+  return [...curated, ...additions];
 }
 
 function AppBackground() {
@@ -256,6 +272,7 @@ function App() {
   const [latestPush, setLatestPush] = useState<GithubActivity | null>(null);
   const [latestCommit, setLatestCommit] = useState<GithubActivity | null>(null);
   const [githubError, setGithubError] = useState(false);
+  const [projects, setProjects] = useState<Project[]>(featuredProjects);
   const [spotifyTracks, setSpotifyTracks] = useState<SpotifyTrack[]>([]);
   const [spotifyNowPlaying, setSpotifyNowPlaying] = useState<SpotifyTrack | null>(null);
   const [spotifyError, setSpotifyError] = useState(false);
@@ -433,6 +450,17 @@ function App() {
       return (await response.json()) as GeneratedLiveData;
     };
 
+    const loadProjects = async () => {
+      try {
+        const snapshot = await loadGeneratedSnapshot();
+        if (!cancelled) {
+          setProjects(mergeProjects(featuredProjects, snapshot.projects));
+        }
+      } catch (err) {
+        console.warn("Projects snapshot load failed, using curated list:", err);
+      }
+    };
+
     const loadGithub = async () => {
       try {
         const token = import.meta.env.VITE_GITHUB_TOKEN;
@@ -542,6 +570,7 @@ function App() {
 
     void loadGithub();
     void loadSpotify();
+    void loadProjects();
 
     const pollInterval = isMobile ? 300000 : 60000;
 
@@ -1612,9 +1641,9 @@ function App() {
           <div className="project-marquee">
             {(() => {
               const ROW_COUNT = 4;
-              const perRow = Math.ceil(featuredProjects.length / ROW_COUNT);
+              const perRow = Math.ceil(projects.length / ROW_COUNT);
               const rows = Array.from({ length: ROW_COUNT }, (_, i) =>
-                featuredProjects.slice(i * perRow, (i + 1) * perRow)
+                projects.slice(i * perRow, (i + 1) * perRow)
               ).filter(row => row.length > 0);
               return rows.map((row, i) => (
                 <SimpleMarquee

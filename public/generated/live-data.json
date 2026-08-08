@@ -1,22 +1,288 @@
 {
-  "generatedAt": "2026-06-28T04:40:00.000Z",
+  "generatedAt": "2026-08-08T07:05:00.069Z",
   "github": {
     "latestPush": {
       "repo": "mdsarfarazalam840/mdsarfarazalam840",
-      "message": "Updated with Dev Metrics",
-      "pushedAt": "2026-06-28T04:40:01Z",
-      "commitUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840/commit/cd0574a5336a553b92d5ddc87e88713faf2e2022",
+      "message": "💀 stealthily update year progress bar",
+      "pushedAt": "2026-08-08T06:45:27Z",
+      "commitUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840/commit/b8066cf6efde3b8d7ef02ddaee273f13ed0a512e",
       "repoUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840"
     },
     "latestCommit": {
       "repo": "mdsarfarazalam840/mdsarfarazalam840",
-      "message": "?? stealthily update year progress bar",
-      "pushedAt": "2026-06-28T03:33:38Z",
-      "commitUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840/commit/50007ed48c9526e0addc738ccf4a4b50bf28c0e6",
+      "message": "🤖 Update AI Insights",
+      "pushedAt": "2026-08-08T06:42:07Z",
+      "commitUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840/commit/d18e10b2868ab4b662407e004030549119c6bb9e",
       "repoUrl": "https://github.com/mdsarfarazalam840/mdsarfarazalam840"
     },
     "profileUrl": "https://github.com/mdsarfarazalam840"
   },
+  "projects": [
+    {
+      "title": "Mdsarfarazalam840",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/mdsarfarazalam840"
+    },
+    {
+      "title": "Islamic Website",
+      "impact": "A comprehensive open-source Islamic website — Quran with 3 translations, authentic Hadith collections, and scholar video library.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/Islamic-website"
+    },
+    {
+      "title": "Gd Mi Index",
+      "impact": "TypeScript project on GitHub.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/gd-mi-index"
+    },
+    {
+      "title": "Freemoviesuggestion",
+      "impact": "Astro project on GitHub.",
+      "stack": "Astro",
+      "href": "https://github.com/mdsarfarazalam840/freemoviesuggestion"
+    },
+    {
+      "title": "3D Portfolio",
+      "impact": "Elite 3D Azure portfolio built with React and Three.js",
+      "stack": "HTML",
+      "href": "https://github.com/mdsarfarazalam840/3D-portfolio"
+    },
+    {
+      "title": "EcomWithAI",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/EcomWithAI"
+    },
+    {
+      "title": "Neural Cloud",
+      "impact": "A cyberpunk/HUD-themed interactive portfolio experience with real-time 3D scenes, custom cursors, and an embedded WebSocket terminal.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/Neural_cloud"
+    },
+    {
+      "title": "Keepalive",
+      "impact": "To keep alive the functions",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/keepalive"
+    },
+    {
+      "title": "Ai Agentrouter",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/ai-agentrouter"
+    },
+    {
+      "title": "Aura Shopping",
+      "impact": "TypeScript project on GitHub.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/Aura-Shopping"
+    },
+    {
+      "title": "Telegram Copier",
+      "impact": "Python project on GitHub.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/telegram_copier"
+    },
+    {
+      "title": "VulnFix AI",
+      "impact": "AI-powered GitHub vulnerability auto-fix tool. Scans repo, generates AI patches, validates in sandbox, creates production-ready PRs.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/VulnFix-AI"
+    },
+    {
+      "title": "Own Drive",
+      "impact": "TypeScript project on GitHub.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/own-drive"
+    },
+    {
+      "title": "Acquisitions",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/acquisitions"
+    },
+    {
+      "title": "Mdsarfarazalam840.github.io",
+      "impact": "Portfolio Website",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/mdsarfarazalam840.github.io"
+    },
+    {
+      "title": "New Tg Gd Bot",
+      "impact": "Telegram bot that streams media from Telegram directly to Google Drive with live progress updates, Docker-first deployment, and production-style CI/CD.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/New-Tg-Gd-Bot"
+    },
+    {
+      "title": "Premium E Commerce",
+      "impact": "Noir Luxe is a premium full-stack e-commerce app built with Next.js 16, TypeScript, Prisma/PostgreSQL, NextAuth, Stripe Checkout, and Zustand, featuring luxury dark/light UI, role-based auth (user/admin), product catalog with filters, cart/checkout flow, account/orders management, and an admin dashboard.",
+      "stack": "TypeScript",
+      "href": "https://github.com/mdsarfarazalam840/Premium-e-commerce"
+    },
+    {
+      "title": "Ai Agent Test",
+      "impact": "Testing-AI-Agent",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/ai-agent-test"
+    },
+    {
+      "title": "Funwithcode",
+      "impact": "Python project on GitHub.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/funwithcode"
+    },
+    {
+      "title": "Kubernetes Demo",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/kubernetes-demo"
+    },
+    {
+      "title": "Devops Pipelines",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/devops-pipelines"
+    },
+    {
+      "title": "Torr Scrapper",
+      "impact": "Python project on GitHub.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/torr_scrapper"
+    },
+    {
+      "title": "Trading Project ETRM",
+      "impact": "This project simulates how trades from an Energy Trading & Risk Management (ETRM) system are migrated, validated, and tracked when moving from one platform to another.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/Trading-Project-ETRM"
+    },
+    {
+      "title": "LLM Notes Generator",
+      "impact": "A powerful web application that transforms your ideas into structured notes using AI language models, with seamless integration to Atlassian Confluence.",
+      "stack": "CSS",
+      "href": "https://github.com/mdsarfarazalam840/LLM-Notes-Generator"
+    },
+    {
+      "title": "DevOps Learning",
+      "impact": "Learning and Practicing all the devops tools in one place",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/DevOps-learning"
+    },
+    {
+      "title": "Gitflow Microservices",
+      "impact": "GitFlow-Based Version Control System for a Microservices Application",
+      "stack": "Code",
+      "href": "https://github.com/mdsarfarazalam840/gitflow-microservices"
+    },
+    {
+      "title": "Devops Git",
+      "impact": "Learning Git for devops",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/devops-git"
+    },
+    {
+      "title": "Release Notes Generator",
+      "impact": "This project automates the generation of consistent, structured, and audience-tailored release notes using Large Language Models (LLMs).",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/release-notes-generator"
+    },
+    {
+      "title": "FreeRDP",
+      "impact": "Testing purpose",
+      "stack": "Code",
+      "href": "https://github.com/mdsarfarazalam840/FreeRDP"
+    },
+    {
+      "title": "Devops Microshop Windows",
+      "impact": "PowerShell project on GitHub.",
+      "stack": "PowerShell",
+      "href": "https://github.com/mdsarfarazalam840/devops-microshop_windows"
+    },
+    {
+      "title": "Kafka Pero Slim",
+      "impact": "Python project on GitHub.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/kafka_pero_slim"
+    },
+    {
+      "title": "Devops Microshop",
+      "impact": "JavaScript project on GitHub.",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/devops-microshop"
+    },
+    {
+      "title": "Secure Supply Chain CICD",
+      "impact": "end-to-end secure CI/CD pipeline",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/Secure-Supply-Chain-CICD"
+    },
+    {
+      "title": "Jenkins Shared Libraries",
+      "impact": "Groovy project on GitHub.",
+      "stack": "Groovy",
+      "href": "https://github.com/mdsarfarazalam840/jenkins-shared-libraries"
+    },
+    {
+      "title": "Two Tier Flask Appplication",
+      "impact": "HTML project on GitHub.",
+      "stack": "HTML",
+      "href": "https://github.com/mdsarfarazalam840/two-tier-flask-appplication"
+    },
+    {
+      "title": "Scripting",
+      "impact": "Some .sh script files written to automate things",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/scripting"
+    },
+    {
+      "title": "My Drive Clone",
+      "impact": "Google Drive Clone with Media Playback",
+      "stack": "JavaScript",
+      "href": "https://github.com/mdsarfarazalam840/my-drive-clone"
+    },
+    {
+      "title": "Portfolio",
+      "impact": "Software project on GitHub.",
+      "stack": "Code",
+      "href": "https://github.com/mdsarfarazalam840/Portfolio"
+    },
+    {
+      "title": "Java Programs",
+      "impact": "Java project on GitHub.",
+      "stack": "Java",
+      "href": "https://github.com/mdsarfarazalam840/Java-Programs"
+    },
+    {
+      "title": "Admin",
+      "impact": "PHP project on GitHub.",
+      "stack": "PHP",
+      "href": "https://github.com/mdsarfarazalam840/admin"
+    },
+    {
+      "title": "Breaker",
+      "impact": "Brick breaker Game to play in pc and made by eclipse",
+      "stack": "Java",
+      "href": "https://github.com/mdsarfarazalam840/Breaker"
+    },
+    {
+      "title": "Library Management System",
+      "impact": "Library Management system with core java",
+      "stack": "Java",
+      "href": "https://github.com/mdsarfarazalam840/Library-Management-System"
+    },
+    {
+      "title": "Sample Repo",
+      "impact": "This is a sample repository",
+      "stack": "HTML",
+      "href": "https://github.com/mdsarfarazalam840/Sample-Repo"
+    },
+    {
+      "title": "Bird1",
+      "impact": "Python project on GitHub.",
+      "stack": "Python",
+      "href": "https://github.com/mdsarfarazalam840/Bird1"
+    }
+  ],
   "spotify": {
     "widgetUrl": "https://spotify-recently-played-readme.vercel.app/api?user=oj1xerhb9fby7dckdhp0yw3no&unique=true",
     "profileUrl": "https://open.spotify.com/user/oj1xerhb9fby7dckdhp0yw3no"

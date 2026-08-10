@@ -23,7 +23,7 @@
     "three": "latest"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.0",
     "@tsparticles/engine": "^3.9.1",
     "@tsparticles/react": "^3.0.0",

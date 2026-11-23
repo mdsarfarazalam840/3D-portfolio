@@ -180,7 +180,7 @@ jobs:
       - name: docker metadata
         if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKERHUB_USERNAME }}/3d-portfolio
           tags: |

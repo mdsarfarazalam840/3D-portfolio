@@ -168,7 +168,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: login to dockerhub
         if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
